@@ -1,4 +1,3 @@
-// api/api.go
 package api
 
 import (
@@ -6,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 // Structs to unmarshal JSON data
@@ -45,26 +43,9 @@ const (
 	RelationURL  = "https://groupietrackers.herokuapp.com/api/relation"
 )
 
-// DataFetcher interface to abstract the data fetching logic
-type DataFetcher interface {
-	FetchData(url string) ([]byte, error)
-}
-
-// Default Fetcher implementation with set timeout
-var Fetcher DataFetcher = fetcher{
-	client: &http.Client{
-		Timeout: 20 * time.Second,
-	},
-}
-
-// fetcher struct that implements the DataFetcher interface
-type fetcher struct {
-	client *http.Client
-}
-
 // FetchData makes an HTTP GET request to the given URL and returns the response body
-func (f fetcher) FetchData(url string) ([]byte, error) {
-	resp, err := f.client.Get(url)
+func FetchData(url string) ([]byte, error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %v", err)
 	}
@@ -80,7 +61,7 @@ func (f fetcher) FetchData(url string) ([]byte, error) {
 
 // GetArtists fetches the artist data from the API and returns a slice of Artist structs
 func GetArtists() ([]Artist, error) {
-	body, err := Fetcher.FetchData(ArtistsURL)
+	body, err := FetchData(ArtistsURL)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +76,7 @@ func GetArtists() ([]Artist, error) {
 
 // GetLocations fetches the location data from the API and returns a slice of Location structs
 func GetLocations() ([]Location, error) {
-	body, err := Fetcher.FetchData(LocationsURL)
+	body, err := FetchData(LocationsURL)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +94,7 @@ func GetLocations() ([]Location, error) {
 
 // GetDates fetches the date data from the API and returns a slice of Date structs
 func GetDates() ([]Date, error) {
-	body, err := Fetcher.FetchData(DatesURL)
+	body, err := FetchData(DatesURL)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +112,7 @@ func GetDates() ([]Date, error) {
 
 // GetRelations fetches the relation data from the API and returns a slice of Relation structs
 func GetRelations() ([]Relation, error) {
-	body, err := Fetcher.FetchData(RelationURL)
+	body, err := FetchData(RelationURL)
 	if err != nil {
 		return nil, err
 	}
