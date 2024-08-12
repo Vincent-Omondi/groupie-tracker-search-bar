@@ -5,6 +5,16 @@ document.addEventListener('DOMContentLoaded', function() {
         searchButton.addEventListener('click', performSearch);
     }
 
+    // Add event listener for Enter key in the search input
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
+
     // Add event listeners for tabs
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
@@ -12,6 +22,18 @@ document.addEventListener('DOMContentLoaded', function() {
             switchTab(this);
         });
     });
+
+    // Add event listener for "Artists" tab to reset the search
+    const artistsButton = document.getElementById('artists-btn');
+    if (artistsButton) {
+        artistsButton.addEventListener('click', resetArtists);
+    }
+
+    // Save the original artist list
+    const contentGrid = document.getElementById('content-grid');
+    if (contentGrid) {
+        contentGrid.setAttribute('data-original-content', contentGrid.innerHTML);
+    }
 });
 
 function performSearch() {
@@ -38,6 +60,20 @@ function switchTab(clickedTab) {
     // Add logic here to show/hide content based on the selected tab
 }
 
+function resetArtists() {
+    const searchInput = document.getElementById('search-input');
+    const contentGrid = document.getElementById('content-grid');
+
+    if (searchInput && contentGrid) {
+        // Clear the search input
+        searchInput.value = '';
+
+        // Reset the artist list to the original content
+        const originalContent = contentGrid.getAttribute('data-original-content');
+        contentGrid.innerHTML = originalContent;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     var topbar = document.getElementById("topbar");
     var mainContent = document.getElementById("main-content");
@@ -50,3 +86,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
