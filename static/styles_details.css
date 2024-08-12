@@ -1,0 +1,112 @@
+/* General Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Topbar Styling */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: #333333; /* Non-transparent background */
+    color: white;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: background-color 0.3s ease; /* Smooth transition for background color */
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.back-button {
+    background:#FF0000;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    text-decoration: none;
+    margin-right: 50px;
+    
+}
+
+/* Artist Details Styling */
+.artist-details {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 100px auto 0; /* Ensure top margin accounts for the fixed topbar */
+    background-color: var(--card-background);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.artist-details h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.artist-details img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.artist-details p {
+    margin-bottom: 10px;
+    font-size: 18px; /* Adjust font size if needed */
+}
+
+.artist-details h2 {
+    font-size: 24px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.concert-info {
+    margin-top: 20px;
+}
+
+.concert-info h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.concert-info ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+    .artist-details {
+        padding: 20px;
+    }
+    
+    .artist-details h1 {
+        font-size: 24px;
+    }
+
+    .artist-details img {
+        max-width: 100%;
+    }
+
+    .artist-details p {
+        font-size: 16px;
+    }
+
+    .artist-details h2 {
+        font-size: 20px;
+    }
+}

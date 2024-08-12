@@ -1,0 +1,42 @@
+/* Keyframes for Fade In Left Animation */
+@keyframes fadeInLeftBig {
+    from {
+        opacity: 0;
+        transform: translateX(-1000px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Keyframes for Fade In Right Animation */
+@keyframes fadeInRightBig {
+    from {
+        opacity: 0;
+        transform: translateX(1000px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Apply Animations */
+.animated {
+    animation-duration: 1s; /* Duration of the animation */
+    animation-fill-mode: both; /* Ensure animation persists after completion */
+}
+
+.fadeInLeftBig {
+    animation-name: fadeInLeftBig;
+}
+
+.fadeInRightBig {
+    animation-name: fadeInRightBig;
+}
+
+/* Optional: Add delay or other properties */
+.animated {
+    animation-timing-function: ease-in-out; /* Smooth animation effect */
+}
