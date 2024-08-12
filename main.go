@@ -30,7 +30,7 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("templates/artists.html"))
 	err = tmpl.Execute(w, data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Error executing template artist", err)
 	}
 }
 
@@ -56,7 +56,7 @@ func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("templates/artist_details.html"))
 	err = tmpl.Execute(w, data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Error executing template artist_details:", err)
 	}
 }
 
