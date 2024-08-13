@@ -1,0 +1,121 @@
+@import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=League+Spartan:wght@100..900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Jost", sans-serif;
+}
+
+:root {
+  --primary-color: #ff0000;
+  --secondary-color: #333333;
+  --background-color: black;
+  --text-color: #000000;
+  --card-background: #ffffff;
+}
+
+ol,
+li {
+  text-decoration: none;
+  list-style: none;
+  font-size: 20px;
+}
+
+body {
+  display: grid;
+  place-items: center;
+}
+
+body header {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  z-index: 5;
+}
+
+body header .navbar {
+  width: 100%;
+  background-color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  margin: 0 auto 25px;
+  z-index: 5;
+}
+
+body header .navbar .logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--card-background);
+}
+
+body header .navbar a {
+  background-color: var(--primary-color);
+  color: var(--card-background);
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+}
+
+.container {
+  display: grid;
+  place-items: center;
+  width: 80%;
+}
+
+.container .accordion {
+  width: 100%;
+  padding: 20px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 10px;
+  margin: 0 auto 10px;
+}
+
+.container .accordion .answer {
+  display: none;
+}
+
+.container .accordion .question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.container .accordion .question h3 {
+  font-size: 28px;
+}
+
+.container .accordion .question ion-icon {
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  background-color: #ff0000;
+}
+
+.container .accordion.active .answer {
+  display: block;
+}
+
+.container .accordion .answer p {
+  font-size: 20px;
+}
+
+h3 {
+  font-size: 28px;
+  margin: 20px auto 0;
+}
+
+.contributors {
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contributors .contributor a {
+  text-decoration: none;
+  font-size: 20px;
+  color: var(--text-color);
+}
