@@ -1,23 +1,66 @@
-<div class="topbar">
-    <div class="logo">Groupie Tracker</div>
-    <a href="/" class="back-button">Back to Artists</a>
-    <link rel="stylesheet" href="/static/styles_details.css">
-</div>
-<div class="artist-details">
-    <h1>{{.Artist.Name}}</h1>
-    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="/static/styles_details.css" />
+    <link rel="stylesheet" href="/static/animation.css" />
+
+    <title>Artist Details</title>
+  </head>
+  <body>
+    <nav class="topbar">
+      <div class="logo">Groupie Tracker</div>
+
+      <a href="/artists">Back to Artists</a>
+    </nav>
+
+    <h2 class="artist-name">{{.Artist.Name}}</h2>
+    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" class="artist-image" />
+
     <p><strong>Creation Date:</strong> {{.Artist.CreationDate}}</p>
     <p><strong>First Album:</strong> {{.Artist.FirstAlbum}}</p>
-    <p><strong>Members:</strong> {{range $index, $element := .Artist.Members}}{{if $index}}, {{end}}{{$element}}{{end}}</p>
-    <h2>Concert Locations and Dates</h2>
-    {{range $location, $dates := .Relation.DatesLocations}}
-    <div class="concert-info">
-        <h3>{{$location}}</h3>
+
+    <p>
+      <strong> Members:</strong> {{range $index, $element := .Artist.Members}}
+      {{if $index}}, {{end}}{{$element}} {{end}}
+    </p>
+
+    <div class="artist-details">
+      <div class="locations">
+        <h3>Concert Locations</h3>
         <ul>
-            {{range $dates}}
-            <li>{{.}}</li>
-            {{end}}
+          {{range .Relation.Locations}}
+          <li>{{.}}</li>
+          {{end}}
         </ul>
+      </div>
+
+      <div class="dates">
+        <h3>Dates</h3>
+        <ul>
+          {{range .Relation.Dates}}
+          <li>{{.}}</li>
+          {{end}}
+        </ul>
+      </div>
+
+      <div class="relation">
+        <h3>Relations</h3>
+        <ul>
+          {{range $location, $dates := .Relation.DatesLocations}}
+          <li>
+            {{$location}}:
+            <ul>
+              {{range $dates}}
+              <li>{{.}}</li>
+              {{end}}
+            </ul>
+          </li>
+          {{end}}
+        </ul>
+      </div>
     </div>
-    {{end}}
-</div>
+  </body>
+</html>

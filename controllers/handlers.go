@@ -20,7 +20,11 @@ type TemplateData struct {
 
 type ArtistDetailData struct {
 	Artist   api.Artist
-	Relation api.Relation
+	Relation struct {
+		Locations      []string
+		Dates          []string
+		DatesLocations map[string][]string
+	}
 }
 
 var artistCache []api.Artist
@@ -130,9 +134,24 @@ func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	locations := make([]string, 0, len(relation.DatesLocations))
+	dates := make([]string, 0)
+	for location, datelist := range relation.DatesLocations {
+		locations = append(locations, location)
+		dates = append(dates, datelist...)
+	}
+
 	data := ArtistDetailData{
-		Artist:   *artist,
-		Relation: *relation,
+		Artist: *artist,
+		Relation: struct {
+			Locations      []string
+			Dates          []string
+			DatesLocations map[string][]string
+		}{
+			Locations:      locations,
+			Dates:          dates,
+			DatesLocations: relation.DatesLocations,
+		},
 	}
 
 	tmpl, err := template.ParseFiles("templates/artist_details.html")
