@@ -12,10 +12,12 @@
     <div class="topbar">
         <div class="logo">Groupie Tracker</div>
         <div class="search-container">
-            <input type="text" class="search-input" id="search-input" placeholder="Search artist...">
-            <button class="search-button">
-                <i class="fas fa-search"></i> Search
-            </button>
+            <form action="/artists" method="get">
+                <input type="text" name="query" class="search-input" id="search-input" placeholder="Search artist..." value="{{.Query}}">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
         </div>
     </div>
     <div class="container">
@@ -26,10 +28,15 @@
     </div>
     <div class="main-content">
         <div class="content-tabs">
-            <button class="tab active">Artists</button>
-            <button class="tab">About</button>
+            <a href="/artists" class="tab active" id="artists-btn">Artists</a>
+            <a href="#" class="tab" id="about-btn">About</a>
         </div>
         <div class="content-grid" id="content-grid">
+            {{if .NoResults}}
+            <div class="error-message">
+                <p>No artists found matching your query. Please try a different search term.</p>
+            </div>
+            {{else}}
             {{range .Artists}}
             <a href="/artist/{{.ID}}" class="content-card">
                 <img src="{{.Image}}" alt="{{.Name}}" class="content-poster">
@@ -38,21 +45,9 @@
                 </div>
             </a>
             {{end}}
+            {{end}}
         </div>
     </div>
     <script src="/static/scripts2.js"></script>
-    <script>
-        window.addEventListener('scroll', function() {
-            const topbar = document.querySelector('.topbar');
-            const mainContent = document.querySelector('.main-content');
-            const mainContentTop = mainContent.offsetTop;
-
-            if (window.scrollY >= mainContentTop) {
-                topbar.classList.add('scrolled');
-            } else {
-                topbar.classList.remove('scrolled');
-            }
-        });
-    </script>
 </body>
 </html>
