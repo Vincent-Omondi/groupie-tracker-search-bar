@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="/static/about.css" />
+    <link rel="stylesheet" href="/static/animation.css" />
+
+    <title>About</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="logo">Groupie Tracker</div>
+
+        <a href="/artists">Back to Artists</a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <div class="accordion">
+        <div class="question">
+          <h3>What is Groupie Tracker</h3>
+          <ion-icon name="chevron-down-outline"></ion-icon>
+        </div>
+
+        <div class="answer">
+          <p>
+            Groupie Trackers consists on receiving a given API and manipulate
+            the data contained in it, in order to create a site, displaying the
+            information.
+          </p>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="question">
+          <h3>What does the project entail</h3>
+          <ion-icon name="chevron-down-outline"></ion-icon>
+        </div>
+
+        <div class="answer">
+          <p>It will be given an API, that consists in four parts:</p>
+          <ol>
+            <li>
+              The first one, artists, containing information about some bands
+              and artists like their name(s), image, in which year they began
+              their activity, the date of their first album and the members.
+            </li>
+
+            <li>
+              The second one, locations, consists in their last and or upcoming
+              concert locations.
+            </li>
+
+            <li>
+              The third one, dates, consists in their last and/or upcoming
+              concert dates.
+            </li>
+
+            <li>
+              The last one, relation, does the link between all the other parts,
+              artists, dates and locations.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="question">
+          <h3>What does the project help one learn about</h3>
+          <ion-icon name="chevron-down-outline"></ion-icon>
+        </div>
+
+        <div class="answer">
+          <p>The project helps one learn about:</p>
+          <ol>
+            <li>Manipulation and storage of data.</li>
+
+            <li>JSON files and format.</li>
+
+            <li>Event creation and display.</li>
+
+            <li>Client-server.</li>
+          </ol>
+        </div>
+      </div>
+
+      <h3>Contributors</h3>
+
+      <div class="contributors">
+        <div class="contributor">
+          <!-- <img src="" alt="Hillary's Image" /> -->
+          <a target="_blank" href="https://github.com/ombima56">Hillary</a>
+        </div>
+
+        <div class="contributor">
+          <!-- <img src="" alt="Vincent's Image" /> -->
+          <a target="_blank" href="https://github.com/Vincent-Omondi"
+            >Vincent</a
+          >
+        </div>
+
+        <div class="contributor">
+          <!-- <img src="" alt="John's Image" /> -->
+          <a target="_blank" href="https://github.com/johneliud">John</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/about.js"></script>
+    <!-- Ion-Icon Link -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+  </body>
+</html>
