@@ -22,17 +22,17 @@
     <p><strong>Creation Date:</strong> {{.Artist.CreationDate}}</p>
     <p><strong>First Album:</strong> {{.Artist.FirstAlbum}}</p>
 
-    <p><strong>
-      Members:</strong> {{range $index, $element := .Artist.Members}} {{if $index}},
-      {{end}}{{$element}} {{end}}
+    <p>
+      <strong> Members:</strong> {{range $index, $element := .Artist.Members}}
+      {{if $index}}, {{end}}{{$element}} {{end}}
     </p>
 
     <div class="artist-details">
       <div class="locations">
         <h3>Concert Locations</h3>
         <ul>
-          {{range $location := .Relation.Locations}}
-          <li>{{$location}}</li>
+          {{range .Relation.Locations}}
+          <li>{{.}}</li>
           {{end}}
         </ul>
       </div>
@@ -40,14 +40,8 @@
       <div class="dates">
         <h3>Dates</h3>
         <ul>
-          {{range $dates := .Relation.Dates}}
-          <li>
-            <ul>
-              {{range $dates}}
-              <li>{{.}}</li>
-              {{end}}
-            </ul>
-          </li>
+          {{range .Relation.Dates}}
+          <li>{{.}}</li>
           {{end}}
         </ul>
       </div>
@@ -57,7 +51,7 @@
         <ul>
           {{range $location, $dates := .Relation.DatesLocations}}
           <li>
-            <h4>{{$location}}</h4>
+            {{$location}}:
             <ul>
               {{range $dates}}
               <li>{{.}}</li>
