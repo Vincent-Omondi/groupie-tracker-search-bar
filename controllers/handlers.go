@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"learn.zone01kisumu.ke/git/johnodhiambo0/groupie-tracker/api"
 )
@@ -22,10 +23,12 @@ type ArtistDetailData struct {
 	Relation api.Relation
 }
 
-func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
-	// Set the status code
-	w.WriteHeader(statusCode)
+var artistCache []api.Artist
+var cacheTime time.Time
+const cacheDuration = 10 * time.Minute
 
+// ErrorHandler handles error responses and templates
+func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
 	// Define error template data
 	data := struct {
 		StatusCode int
@@ -43,21 +46,28 @@ func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
 
 	if err := tmpl.Execute(w, data); err != nil {
 		log.Println("Error executing error template")
-		http.Error(w, "Error executing data deatils", http.StatusInternalServerError)
+		http.Error(w, "Error executing data details", http.StatusInternalServerError)
 		return
 	}
 }
 
+// ServeArtists handles the /artists route
 func ServeArtists(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-	artists, err := api.GetArtists()
-	if err != nil {
-		log.Printf("Error getting artists: %v", err)
-		ErrorHandler(w, "Unable to retrieve artists at this time. Please try again later.", http.StatusInternalServerError)
-		return
+
+	// Check if cache is valid
+	if time.Since(cacheTime) > cacheDuration || artistCache == nil {
+		artists, err := api.GetArtists()
+		if err != nil {
+			log.Printf("Error getting artists: %v", err)
+			ErrorHandler(w, "Unable to retrieve artists at this time. Please try again later.", http.StatusInternalServerError)
+			return
+		}
+		artistCache = artists  
+		cacheTime = time.Now() 
 	}
 
-	filteredArtists := filterArtists(artists, query)
+	filteredArtists := filterArtists(artistCache, query)
 
 	// Check if no results were found and query is not empty
 	if len(filteredArtists) == 0 && query != "" {
@@ -85,7 +95,6 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 // filterArtists filters the list of artists based on the search query
 func filterArtists(artists []api.Artist, query string) []api.Artist {
 	if query == "" {
