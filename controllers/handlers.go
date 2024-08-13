@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -44,15 +45,25 @@ func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
 
 	tmpl, err := template.ParseFiles("templates/error.html")
 	if err != nil {
+		log.Println("Error parsing error template:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// w.WriteHeader(statusCode)
 
-	if err := tmpl.Execute(w, data); err != nil {
-		log.Println("Error executing error template")
-		http.Error(w, "Error executing data details", http.StatusInternalServerError)
-		return
-	}
+	var buf bytes.Buffer
+    if err := tmpl.Execute(&buf, data); err != nil {
+        log.Println("Error executing error template:", err)
+        log.Printf("Error details: %v", err)
+        return
+    }
+
+    // Write the buffered content to the response writer
+    _, err = buf.WriteTo(w)
+    if err != nil {
+        log.Printf("Error writing response: %v", err)
+    }
 }
 
 // ServeArtists handles the /artists route
