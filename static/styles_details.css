@@ -1,112 +1,78 @@
-/* General Styles */
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    overflow-x: hidden;
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "League-Spartan", sans-serif;
 }
 
-/* Topbar Styling */
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    background-color: #333333; /* Non-transparent background */
-    color: white;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    transition: background-color 0.3s ease; /* Smooth transition for background color */
+:root {
+  --primary-color: #ff0000;
+  --secondary-color: #333333;
+  --background-color: black;
+  --text-color: #000000;
+  --card-background: #ffffff;
 }
 
-.logo {
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.back-button {
-    background:#FF0000;
-    border: none;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
+li {
     text-decoration: none;
-    margin-right: 50px;
-    
+    list-style: none;
 }
 
-/* Artist Details Styling */
+body {
+  display: grid;
+  place-items: center;
+}
+
+.topbar {
+  width: 100%;
+  padding: 20px;
+  background-color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto 25px;
+  z-index: 5;
+}
+
+.topbar .logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--card-background);
+}
+
+.topbar a {
+  background-color: var(--primary-color);
+  color: var(--card-background);
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+}
+
+.artist-name {
+    font-size: 30px;
+}
+
+.artist-image {
+    width: 40%;
+}
+
 .artist-details {
-    padding: 30px;
-    max-width: 1200px;
-    margin: 100px auto 0; /* Ensure top margin accounts for the fixed topbar */
-    background-color: var(--card-background);
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin: 25px auto 0;
+  width: 85%;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  column-gap: 20px;
 }
 
-.artist-details h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
+.artist-details div {
+  padding: 10px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 10px;
 }
 
-.artist-details img {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.artist-details p {
-    margin-bottom: 10px;
-    font-size: 18px; /* Adjust font size if needed */
-}
-
-.artist-details h2 {
-    font-size: 24px;
-    margin-top: 20px;
-    margin-bottom: 15px;
-}
-
-.concert-info {
-    margin-top: 20px;
-}
-
-.concert-info h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-.concert-info ul {
-    list-style-type: none;
-    padding-left: 20px;
-}
-
-/* Responsive Styling */
-@media (max-width: 768px) {
-    .artist-details {
-        padding: 20px;
-    }
-    
-    .artist-details h1 {
-        font-size: 24px;
-    }
-
-    .artist-details img {
-        max-width: 100%;
-    }
-
-    .artist-details p {
-        font-size: 16px;
-    }
-
-    .artist-details h2 {
-        font-size: 20px;
-    }
+.artist-details div h3 {
+    margin: 0 auto 10px;
 }
