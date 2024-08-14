@@ -10,56 +10,70 @@
     <title>Artist Details</title>
   </head>
   <body>
-    <nav class="topbar">
-      <div class="logo">Groupie Tracker</div>
+    <header>
+      <nav class="topbar">
+        <div class="logo">Groupie Tracker</div>
 
-      <a href="/artists">Back to Artists</a>
-    </nav>
+        <a href="/artists">Back to Artists</a>
+      </nav>
+    </header>
 
-    <h2 class="artist-name">{{.Artist.Name}}</h2>
-    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" class="artist-image" />
+    <div class="container">
+      <div class="left-side">
+        <h2 class="artist-name">{{.Artist.Name}}</h2>
+        <img
+          src="{{.Artist.Image}}"
+          alt="{{.Artist.Name}}"
+          class="artist-image"
+        />
 
-    <p><strong>Creation Date:</strong> {{.Artist.CreationDate}}</p>
-    <p><strong>First Album:</strong> {{.Artist.FirstAlbum}}</p>
+        <p><strong>Creation Date:</strong> {{.Artist.CreationDate}}</p>
+        <p><strong>First Album:</strong> {{.Artist.FirstAlbum}}</p>
 
-    <p>
-      <strong> Members:</strong> {{range $index, $element := .Artist.Members}}
-      {{if $index}}, {{end}}{{$element}} {{end}}
-    </p>
-
-    <div class="artist-details">
-      <div class="locations">
-        <h3>Concert Locations</h3>
-        <ul>
-          {{range .Relation.Locations}}
-          <li>{{.}}</li>
-          {{end}}
-        </ul>
+        <p>
+          <strong> Members:</strong> {{range $index, $element :=
+          .Artist.Members}} {{if $index}}, {{end}}{{$element}} {{end}}
+        </p>
       </div>
 
-      <div class="dates">
-        <h3>Dates</h3>
-        <ul>
-          {{range .Relation.Dates}}
-          <li>{{.}}</li>
-          {{end}}
-        </ul>
-      </div>
+      <div class="line"></div>
 
-      <div class="relation">
-        <h3>Relations</h3>
-        <ul>
-          {{range $location, $dates := .Relation.DatesLocations}}
-          <li>
-            {{$location}}:
+      <div class="right-side">
+        <div class="artist-details">
+          <div class="locations">
+            <h3>Concert Locations</h3>
             <ul>
-              {{range $dates}}
+              {{range .Relation.Locations}}
               <li>{{.}}</li>
               {{end}}
             </ul>
-          </li>
-          {{end}}
-        </ul>
+          </div>
+
+          <div class="dates">
+            <h3>Dates</h3>
+            <ul>
+              {{range .Relation.Dates}}
+              <li>{{.}}</li>
+              {{end}}
+            </ul>
+          </div>
+
+          <div class="relation">
+            <h3>Relations</h3>
+            <ul>
+              {{range $location, $dates := .Relation.DatesLocations}}
+              <li>
+                {{$location}}:
+                <ul>
+                  {{range $dates}}
+                  <li>{{.}}</li>
+                  {{end}}
+                </ul>
+              </li>
+              {{end}}
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </body>
