@@ -4,8 +4,6 @@ import (
 	"net/http"
 )
 
-// controllers/routes.go
-
 func RegisterRoutes() {
 	http.HandleFunc("/artists", ServeArtists)
 	http.HandleFunc("/artists/", GetArtistByIDHandler)
