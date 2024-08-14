@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=League+Spartan:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Grandiflora+One&family=Jost:ital,wght@0,100..900;1,100..900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
 
 * {
   margin: 0;
@@ -16,13 +16,17 @@
 }
 
 li {
-    text-decoration: none;
-    list-style: none;
+  text-decoration: none;
+  list-style: none;
 }
 
 body {
   display: grid;
   place-items: center;
+}
+
+header {
+  width: 100%;
 }
 
 .topbar {
@@ -50,29 +54,68 @@ body {
   border-radius: 20px;
 }
 
-.artist-name {
-    font-size: 30px;
-}
-
-.artist-image {
-    width: 40%;
-}
-
-.artist-details {
-  margin: 25px auto 0;
-  width: 85%;
+.container {
+  width: 80%;
   display: flex;
-  justify-content: space-between;
   align-items: start;
-  column-gap: 20px;
+  justify-content: space-between;
+  margin: 0 auto 20px;
 }
 
-.artist-details div {
+.container .left-side,
+.container .right-side {
   padding: 10px;
-  border: 1px solid var(--secondary-color);
-  border-radius: 10px;
 }
 
-.artist-details div h3 {
-    margin: 0 auto 10px;
+.container .left-side {
+  width: 40%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  row-gap: 20px;
+}
+
+.container .left-side .artist-name {
+  font-size: 40px;
+}
+
+.container .left-side .artist-image {
+  aspect-ratio: 1/1;
+}
+
+.container .left-side p {
+  font-size: 20px;
+}
+
+.container .line {
+  background-color: #000000;
+  width: 2px;
+  height: 50vh;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+}
+
+.container .right-side {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.container .right-side .artist-details {
+  display: grid;
+  row-gap: 20px;
+}
+
+.container .right-side .artist-details .locations h3,
+.container .right-side .artist-details .dates h3,
+.container .right-side .artist-details .relation h3 {
+  font-size: 30px;
+  color: #ff0000;
+}
+
+.container .right-side .artist-details .locations ul li,
+.container .right-side .artist-details .dates ul li,
+.container .right-side .artist-details .relation ul li {
+  font-size: 20px;
 }
