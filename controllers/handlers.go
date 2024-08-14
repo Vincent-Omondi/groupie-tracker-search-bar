@@ -28,8 +28,11 @@ type ArtistDetailData struct {
 	}
 }
 
-var artistCache []api.Artist
-var cacheTime time.Time
+var (
+	artistCache []api.Artist
+	cacheTime   time.Time
+)
+
 const cacheDuration = 10 * time.Minute
 
 // ErrorHandler handles error responses and templates
@@ -53,17 +56,17 @@ func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
 	// w.WriteHeader(statusCode)
 
 	var buf bytes.Buffer
-    if err := tmpl.Execute(&buf, data); err != nil {
-        log.Println("Error executing error template:", err)
-        log.Printf("Error details: %v", err)
-        return
-    }
+	if err := tmpl.Execute(&buf, data); err != nil {
+		log.Println("Error executing error template:", err)
+		log.Printf("Error details: %v", err)
+		return
+	}
 
-    // Write the buffered content to the response writer
-    _, err = buf.WriteTo(w)
-    if err != nil {
-        log.Printf("Error writing response: %v", err)
-    }
+	// Write the buffered content to the response writer
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
+	}
 }
 
 // ServeArtists handles the /artists route
@@ -78,8 +81,8 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 			ErrorHandler(w, "Unable to retrieve artists at this time. Please try again later.", http.StatusInternalServerError)
 			return
 		}
-		artistCache = artists  
-		cacheTime = time.Now() 
+		artistCache = artists
+		cacheTime = time.Now()
 	}
 
 	filteredArtists := filterArtists(artistCache, query)
@@ -110,6 +113,7 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
 // filterArtists filters the list of artists based on the search query
 func filterArtists(artists []api.Artist, query string) []api.Artist {
 	if query == "" {
@@ -288,6 +292,26 @@ func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response for artist ID %d: %v", artistID, err)
 		ErrorHandler(w, "An error occurred while processing the response. Please try again later.", http.StatusInternalServerError)
+		return
+	}
+}
+
+// Serve About Page
+func AboutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		ErrorHandler(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	tmpl, err := template.ParseFiles("templates/about.html")
+	if err != nil {
+		ErrorHandler(w, "file not found", http.StatusNotFound)
+		log.Printf("Error parsing index.html: %v\n", err)
+		return
+	}
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		ErrorHandler(w, "Something unexpected occured", http.StatusInternalServerError)
+		log.Printf("Error executing template: %v\n", err)
 		return
 	}
 }
