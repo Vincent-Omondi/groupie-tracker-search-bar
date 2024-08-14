@@ -13,6 +13,7 @@ func main() {
 
 	http.HandleFunc("/artists", controllers.ServeArtists)
 	http.HandleFunc("/artist/", controllers.ServeArtistDetails)
+	http.HandleFunc("/about", controllers.AboutHandler)
 
 	// Catch-all for undefined routes
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +30,7 @@ func main() {
 		}
 
 		// If it's not a known route, use ErrorHandler for 404
-		controllers.ErrorHandler(w, "404 Page Not Found", http.StatusNotFound)
+		controllers.ErrorHandler(w, "Page Not Found", http.StatusNotFound)
 	})
 
 	log.Println("Server is running on http://localhost:8080")
