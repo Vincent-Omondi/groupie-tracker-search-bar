@@ -17,16 +17,17 @@
       <div class="search-container">
         <form action="/artists" method="get">
           <input
-            type="text"
+            type="search"
             name="query"
             class="search-input"
             id="search-input"
             placeholder="Search artist..."
             value="{{.Query}}"
           />
-          <button type="submit" class="search-button">
-            <i class="fas fa-search"></i> Search
+          <button type="button" class="search-icon" id="search-icon">
+            <i class="fas fa-search"></i>
           </button>
+          <button type="submit" class="search-button">Search</button>
         </form>
       </div>
     </div>
