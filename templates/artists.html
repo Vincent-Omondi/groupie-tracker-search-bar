@@ -3,32 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <link rel="stylesheet" href="/static/styles2.css" />
     <link rel="stylesheet" href="/static/animation.css" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Groupie Tracker</title>
   </head>
   <body>
     <header>
       <nav class="topbar">
         <div class="logo">Groupie Tracker</div>
-        
-        <div class="search-container">
-          <form action="/artists" method="get">
-            <input
-              type="text"
-              name="query"
-              class="search-input"
-              id="search-input"
-              placeholder="Search artist..."
-              value="{{.Query}}"
-            />
-            <button type="submit" class="search-button">
-              <i class="fas fa-search"></i> Search
-            </button>
-          </form>
-        </div>
       </nav>
     </header>
 
@@ -40,6 +23,21 @@
         <h3 class="animated fadeInRightBig">
           Groupie Trackers brings you closer to the music you love.
         </h3>
+        <div class="search-container">
+          <form action="/artists" method="get">
+              <input
+                  type="search"
+                  name="query"
+                  class="search-input"
+                  id="search-input"
+                  placeholder="Search for artists..."
+                  value="{{.Query}}"
+              />
+              <button type="submit" class="search-button" id="search-button">
+                  <i class="fas fa-search"></i>
+              </button>
+          </form>
+      </div>
       </div>
     </div>
     <div class="main-content">

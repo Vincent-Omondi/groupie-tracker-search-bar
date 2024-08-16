@@ -55,3 +55,17 @@ window.addEventListener('scroll', function() {
         topbar.classList.remove('scrolled');
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+
+    // Add some interactivity to the search button
+    searchButton.addEventListener('mouseover', function() {
+        this.style.transform = 'translateY(-50%) scale(1.1)';
+    });
+
+    searchButton.addEventListener('mouseout', function() {
+        this.style.transform = 'translateY(-50%) scale(1)';
+    });
+});
