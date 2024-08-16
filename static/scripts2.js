@@ -57,21 +57,15 @@ window.addEventListener('scroll', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const searchContainer = document.querySelector('.search-container');
-    const searchIcon = document.getElementById('search-icon');
     const searchInput = document.getElementById('search-input');
-  
-    searchIcon.addEventListener('click', function(e) {
-      e.preventDefault();
-      searchContainer.classList.toggle('expanded');
-      if (searchContainer.classList.contains('expanded')) {
-        searchInput.focus();
-      }
+    const searchButton = document.getElementById('search-button');
+
+    // Add some interactivity to the search button
+    searchButton.addEventListener('mouseover', function() {
+        this.style.transform = 'translateY(-50%) scale(1.1)';
     });
-  
-    document.addEventListener('click', function(e) {
-      if (!searchContainer.contains(e.target) && searchContainer.classList.contains('expanded')) {
-        searchContainer.classList.remove('expanded');
-      }
+
+    searchButton.addEventListener('mouseout', function() {
+        this.style.transform = 'translateY(-50%) scale(1)';
     });
 });
