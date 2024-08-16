@@ -1,10 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Grandiflora+One&family=Jost:ital,wght@0,100..900;1,100..900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Grandiflora+One&family=Jost:ital,wght@0,100..900;1,100..900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Jost", sans-serif;
+  font-family: 'Jost', sans-serif;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 :root {
@@ -15,14 +20,22 @@
   --card-background: #ffffff;
 }
 
-li {
-  text-decoration: none;
-  list-style: none;
-}
-
 body {
   display: grid;
   place-items: center;
+  background: url('/static/1.jpg');
+  background-size: cover;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  z-index: -1;
 }
 
 header {
@@ -68,7 +81,7 @@ header {
 }
 
 .container .left-side {
-  width: 40%;
+  width: 35%;
   display: grid;
   place-items: center;
   text-align: center;
@@ -76,46 +89,150 @@ header {
 }
 
 .container .left-side .artist-name {
-  font-size: 40px;
+  font-size: 30px;
 }
 
 .container .left-side .artist-image {
-  aspect-ratio: 1/1;
+  width: 300px;
 }
 
 .container .left-side p {
   font-size: 20px;
 }
 
-.container .line {
+.container .right-side::before {
+  content: '';
   background-color: #000000;
   width: 2px;
-  height: 50vh;
+  height: 60vh;
+  border-radius: 10px;
   position: absolute;
+  left: 40%;
   top: 25%;
-  left: 50%;
 }
 
 .container .right-side {
+  width: 55%;
   display: grid;
   place-items: center;
-  text-align: center;
 }
 
 .container .right-side .artist-details {
-  display: grid;
-  row-gap: 20px;
+  width: 100%;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.container .right-side .artist-details .locations,
+.container .right-side .artist-details .dates,
+.container .right-side .artist-details .relation {
+  width: 30%;
 }
 
 .container .right-side .artist-details .locations h3,
 .container .right-side .artist-details .dates h3,
 .container .right-side .artist-details .relation h3 {
   font-size: 30px;
-  color: #ff0000;
+  margin: 0 auto 10px;
 }
 
 .container .right-side .artist-details .locations ul li,
 .container .right-side .artist-details .dates ul li,
 .container .right-side .artist-details .relation ul li {
   font-size: 20px;
+}
+
+.container .right-side .artist-details .locations li,
+.container .right-side .artist-details .dates li,
+.container .right-side .artist-details .relation ul {
+  margin: 0 auto 10px;
+}
+
+/* Media Queries */
+/* For screens smaller than 1200px */
+@media screen and (max-width: 1200px) {
+  .container {
+    width: 90%;
+  }
+
+  .container .left-side .artist-image {
+    width: 250px;
+  }
+}
+
+/* For screens smaller than 992px */
+@media screen and (max-width: 992px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container .left-side,
+  .container .right-side {
+    width: 100%;
+  }
+
+  .container .right-side::before {
+    display: none;
+  }
+
+  .container .right-side {
+    text-align: center;
+  }
+
+  .container .right-side .artist-details {
+    justify-content: space-evenly;
+  }
+
+  .container .right-side .artist-details .locations,
+  .container .right-side .artist-details .dates,
+  .container .right-side .artist-details .relation {
+    width: 45%;
+    margin-bottom: 20px;
+  }
+}
+
+/* For screens smaller than 768px */
+@media screen and (max-width: 768px) {
+  .topbar .logo {
+    margin-bottom: 10px;
+  }
+
+  .container .left-side .artist-name {
+    font-size: 24px;
+  }
+
+  .container .left-side p {
+    font-size: 18px;
+  }
+
+  .container .right-side .artist-details .locations h3,
+  .container .right-side .artist-details .dates h3,
+  .container .right-side .artist-details .relation h3 {
+    font-size: 24px;
+  }
+
+  .container .right-side .artist-details .locations ul li,
+  .container .right-side .artist-details .dates ul li,
+  .container .right-side .artist-details .relation ul li {
+    font-size: 18px;
+  }
+}
+
+/* For screens smaller than 576px */
+@media screen and (max-width: 576px) {
+  .container .right-side .artist-details {
+    flex-direction: column;
+  }
+
+  .container .right-side .artist-details .locations,
+  .container .right-side .artist-details .dates,
+  .container .right-side .artist-details .relation {
+    width: 100%;
+  }
+
+  .container .left-side .artist-image {
+    width: 200px;
+  }
 }
