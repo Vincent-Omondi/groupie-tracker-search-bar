@@ -9,11 +9,12 @@
 </head>
 <body class="back-show" style="background-image: url('/static/1.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     <div class="error-container">
-        <h1 class="error-code">{{.StatusCode}}</h1>
-        <p class="error-message">{{.ErrMsg}}</p>
+        {{ if gt .StatusCode 0 }}
+        <h1 class="error-code">{{ .StatusCode }}</h1>
+        {{ end }}
+        <p class="error-message">{{ .ErrMsg }}</p>
         <hr>
         <a href="/" class="back-button">Back to Homepage</a>
     </div>
 </body>
 </html>
-
