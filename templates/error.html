@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
     <link rel="stylesheet" href="/static/error.css">
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="back-show" style="background-image: url('/static/1.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+<body>
+    <div class="background"></div>
     <div class="error-container">
         {{ if gt .StatusCode 0 }}
         <h1 class="error-code">{{ .StatusCode }}</h1>
+        <!-- <h1 class="error-code" data-text="{{ .StatusCode }}">{{ .StatusCode }}</h1> -->
         {{ end }}
         <p class="error-message">{{ .ErrMsg }}</p>
         <hr>
         <a href="/" class="back-button">Back to Homepage</a>
     </div>
+    <!-- <script src="script.js"></script> -->
 </body>
 </html>
