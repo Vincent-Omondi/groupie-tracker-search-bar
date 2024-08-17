@@ -1,80 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Details</title>
+  <link rel="stylesheet" href="/static/styles_details.css" />
+</head>
+<body>
+  <header>
+    <nav class="topbar">
+      <div class="logo">Groupie Tracker</div>
+      <a href="/artists">Back to Artists</a>
+    </nav>
+  </header>
 
-    <link rel="stylesheet" href="/static/styles_details.css" />
-    <link rel="stylesheet" href="/static/animation.css" />
-
-    <title>Artist Details</title>
-  </head>
-  <body>
-    <header>
-      <nav class="topbar">
-        <div class="logo">Groupie Tracker</div>
-
-        <a href="/artists">Back to Artists</a>
-      </nav>
-    </header>
-
-    <div class="container">
-      <div class="left-side">
-        <h2 class="artist-name">{{.Artist.Name}}</h2>
-        <img
-          src="{{.Artist.Image}}"
-          alt="{{.Artist.Name}}"
-          class="artist-image"
-        />
-
+  <div class="container">
+    <div class="left-side">
+      <h2 class="artist-name">{{.Artist.Name}}</h2>
+      <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" class="artist-image" />
+      <div class="artist-info">
         <p><strong>Creation Date:</strong> {{.Artist.CreationDate}}</p>
         <p><strong>First Album:</strong> {{.Artist.FirstAlbum}}</p>
-
-        <p>
-          <strong> Members:</strong> {{range $index, $element :=
-          .Artist.Members}} {{if $index}}, {{end}}{{$element}} {{end}}
+        <p><strong>Members:</strong>
+          {{range $index, $element := .Artist.Members}} 
+            {{if $index}}, {{end}}{{$element}} 
+          {{end}}
         </p>
       </div>
+    </div>
 
-      <div class="line"></div>
+    <div class="right-side">
+      <div class="tab-container">
+        <button class="tab active" onclick="openTab(event, 'relations')">Relations</button>
+        <button class="tab" onclick="openTab(event, 'dates')">Dates</button>
+        <button class="tab" onclick="openTab(event, 'locations')">Locations</button>
+      </div>
 
-      <div class="right-side">
-        <div class="artist-details">
-          <div class="locations">
-            <h3>Locations</h3>
-            <ul>
-              {{range .Relation.Locations}}
-              <li>{{.}}</li>
+      <div id="relations" class="tab-content active">
+        <h3>Relations</h3>
+        <ul class="relations-list">
+          {{range $location, $dates := .Relation.DatesLocations}}
+          <li class="relation-item">
+            <div class="relation-location">{{$location}}</div>
+            <ul class="relation-dates">
+              {{range $dates}}
+              <li class="relation-date">{{.}}</li>
               {{end}}
             </ul>
-          </div>
+          </li>
+          {{end}}
+        </ul>
+      </div>
 
-          <div class="dates">
-            <h3>Dates</h3>
-            <ul>
-              {{range .Relation.Dates}}
-              <li>{{.}}</li>
-              {{end}}
-            </ul>
-          </div>
+      <div id="dates" class="tab-content">
+        <h3>Dates</h3>
+        <ul>
+          {{range .Relation.Dates}}
+          <li>{{.}}</li>
+          {{end}}
+        </ul>
+      </div>
 
-          <div class="relation">
-            <h3>Relations</h3>
-            <ul>
-              {{range $location, $dates := .Relation.DatesLocations}}
-              <li>
-                {{$location}}:
-                <ul>
-                  {{range $dates}}
-                  <li>{{.}}</li>
-                  {{end}}
-                </ul>
-              </li>
-              {{end}}
-            </ul>
-          </div>
-        </div>
+      <div id="locations" class="tab-content">
+        <h3>Locations</h3>
+        <ul>
+          {{range .Relation.Locations}}
+          <li>{{.}}</li>
+          {{end}}
+        </ul>
       </div>
     </div>
-  </body>
+  </div>
+
+  <script src="/static/scripts2.js"></script>
+</body>
 </html>
+
