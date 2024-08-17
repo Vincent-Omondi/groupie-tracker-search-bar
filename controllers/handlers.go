@@ -36,8 +36,10 @@ var (
 const cacheDuration = 10 * time.Minute
 
 // ErrorHandler handles error responses and templates
-func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
-	// Define error template data
+// ErrorHandler handles error responses and templates
+func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logError, showStatusCode bool) {
+	w.WriteHeader(statusCode) // Set the status code
+
 	data := struct {
 		StatusCode int
 		ErrMsg     string
@@ -46,26 +48,33 @@ func ErrorHandler(w http.ResponseWriter, message string, statusCode int) {
 		ErrMsg:     message,
 	}
 
+	// If showStatusCode is false, set StatusCode to 0 to avoid displaying it
+	if !showStatusCode {
+		data.StatusCode = 0
+	}
+
 	tmpl, err := template.ParseFiles("templates/error.html")
 	if err != nil {
-		log.Println("Error parsing error template:", err)
+		if logError {
+			log.Println("Error parsing error template:", err)
+		}
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// w.WriteHeader(statusCode)
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
-		log.Println("Error executing error template:", err)
-		log.Printf("Error details: %v", err)
+		if logError {
+			log.Println("Error executing error template:", err)
+		}
 		return
 	}
 
-	// Write the buffered content to the response writer
 	_, err = buf.WriteTo(w)
-	if err != nil {
-		log.Printf("Error writing response: %v", err)
+	if err != nil && logError {
+		log.Println("Error writing response:", err)
 	}
 }
 
@@ -78,7 +87,7 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 		artists, err := api.GetArtists()
 		if err != nil {
 			log.Printf("Error getting artists: %v", err)
-			ErrorHandler(w, "Unable to retrieve artists at this time. Please try again later.", http.StatusInternalServerError)
+			ErrorHandler(w, "Oops!\n We ran into an issue while fetching Artists,\n Please try again later.", http.StatusInternalServerError, false, false)
 			return
 		}
 		artistCache = artists
@@ -89,7 +98,7 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 
 	// Check if no results were found and query is not empty
 	if len(filteredArtists) == 0 && query != "" {
-		ErrorHandler(w, "We couldn't find any artists matching your search criteria. Please try a different term or check your spelling.", http.StatusNotFound)
+		ErrorHandler(w, "We couldn't find any artists matching your search criteria. Please try a different term or check your spelling.", http.StatusNotFound, false, false)
 		return
 	}
 
@@ -102,14 +111,14 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/artists.html")
 	if err != nil {
 		log.Printf("Error parsing template: %v", err)
-		ErrorHandler(w, "An unexpected error occurred. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "An unexpected error occurred. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
-		ErrorHandler(w, "We encountered an issue while rendering the page. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "We encountered an issue while rendering the page. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -131,21 +140,21 @@ func filterArtists(artists []api.Artist, query string) []api.Artist {
 
 func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/artist/" {
-		ErrorHandler(w, "page not found", http.StatusNotExtended)
+		ErrorHandler(w, "page not found", http.StatusNotExtended, true, true)
 		return
 	}
 
 	idStr := r.URL.Path[len("/artist/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ErrorHandler(w, "Invalid artist ID", http.StatusBadRequest)
+		ErrorHandler(w, "Invalid artist ID", http.StatusBadRequest, true, true)
 		return
 	}
 
 	artist, relation, err := api.GetArtistByID(id)
 	if err != nil {
 		log.Printf("Error retrieving artist by ID %v: %s", id, err)
-		ErrorHandler(w, "Unable to retrieve artist details at this time. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Ooops!\n We ran into an issue while fetching Artists,\n Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 
@@ -172,13 +181,13 @@ func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/artist_details.html")
 	if err != nil {
 		log.Printf("Error parsing template: %v", err)
-		ErrorHandler(w, "Unable to load artist details at this time. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Unable to load artist details at this time. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
-		ErrorHandler(w, "Error rendering artist details. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Error rendering artist details. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -189,21 +198,21 @@ func GetArtistsHandler(w http.ResponseWriter, r *http.Request) {
 	artists, err := api.GetArtists()
 	if err != nil {
 		log.Printf("Error fetching artists: %v", err)
-		ErrorHandler(w, "Unable to retrieve artist information at this time. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Unable to retrieve artist information at this time. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 
 	filteredArtists := filterArtists(artists, query)
 
 	if len(filteredArtists) == 0 {
-		ErrorHandler(w, "No artists found matching the search term.", http.StatusNotFound)
+		ErrorHandler(w, "No artists found matching the search term.", http.StatusNotFound, true, true)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(filteredArtists); err != nil {
 		log.Printf("Error encoding artists data to JSON: %v", err)
-		ErrorHandler(w, "An error occurred while processing the artist data. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "An error occurred while processing the artist data. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -213,14 +222,14 @@ func GetLocationsHandler(w http.ResponseWriter, r *http.Request) {
 	locations, err := api.GetLocations()
 	if err != nil {
 		log.Printf("Error fetching locations: %v", err)
-		ErrorHandler(w, "Unable to retrieve locations at this time. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Unable to retrieve locations at this time. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(locations); err != nil {
 		log.Printf("Error encoding locations data to JSON: %v", err)
-		ErrorHandler(w, "An error occurred while processing location data. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "An error occurred while processing location data. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -230,13 +239,13 @@ func GetDatesHandler(w http.ResponseWriter, r *http.Request) {
 	dates, err := api.GetDates()
 	if err != nil {
 		log.Printf("Error fetching dates: %v", err)
-		ErrorHandler(w, "Unable to retrieve dates at this time. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Unable to retrieve dates at this time. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(dates); err != nil {
 		log.Printf("Error encoding dates data to JSON: %v", err)
-		ErrorHandler(w, "An error occurred while processing date information. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "An error occurred while processing date information. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -246,13 +255,13 @@ func GetRelationsHandler(w http.ResponseWriter, r *http.Request) {
 	relations, err := api.GetRelations()
 	if err != nil {
 		log.Printf("Error fetching relations: %v", err)
-		ErrorHandler(w, "Unable to retrieve relations at this time. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "Unable to retrieve relations at this time. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(relations); err != nil {
 		log.Printf("Error encoding relations data to JSON: %v", err)
-		ErrorHandler(w, "An error occurred while processing relation data. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "An error occurred while processing relation data. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -263,7 +272,7 @@ func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
 	artistID, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Printf("Invalid artist ID: %v", err)
-		ErrorHandler(w, "Invalid artist ID provided. Please check and try again.", http.StatusBadRequest)
+		ErrorHandler(w, "Invalid artist ID provided. Please check and try again.", http.StatusBadRequest, true, true)
 		return
 	}
 
@@ -271,10 +280,10 @@ func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Check if the artist was not found
 		if err.Error() == "artist not found" {
-			ErrorHandler(w, "Artist not found. Please check the ID and try again.", http.StatusNotFound)
+			ErrorHandler(w, "Artist not found. Please check the ID and try again.", http.StatusNotFound, true, true)
 		} else {
 			log.Printf("Error fetching artist or relation with ID %d: %v", artistID, err)
-			ErrorHandler(w, "Unable to retrieve artist details at this time. Please try again later.", http.StatusInternalServerError)
+			ErrorHandler(w, "Unable to retrieve artist details at this time. Please try again later.", http.StatusInternalServerError, true, true)
 		}
 		return
 	}
@@ -291,7 +300,7 @@ func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response for artist ID %d: %v", artistID, err)
-		ErrorHandler(w, "An error occurred while processing the response. Please try again later.", http.StatusInternalServerError)
+		ErrorHandler(w, "An error occurred while processing the response. Please try again later.", http.StatusInternalServerError, true, true)
 		return
 	}
 }
@@ -299,18 +308,18 @@ func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
 // Serve About Page
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		ErrorHandler(w, "method not allowed", http.StatusMethodNotAllowed)
+		ErrorHandler(w, "method not allowed", http.StatusMethodNotAllowed, true, true)
 		return
 	}
 	tmpl, err := template.ParseFiles("templates/about.html")
 	if err != nil {
-		ErrorHandler(w, "file not found", http.StatusNotFound)
+		ErrorHandler(w, "file not found", http.StatusNotFound, true, true)
 		log.Printf("Error parsing index.html: %v\n", err)
 		return
 	}
 	err = tmpl.Execute(w, nil)
 	if err != nil {
-		ErrorHandler(w, "Something unexpected occured", http.StatusInternalServerError)
+		ErrorHandler(w, "Something unexpected occured", http.StatusInternalServerError, true, true)
 		log.Printf("Error executing template: %v\n", err)
 		return
 	}

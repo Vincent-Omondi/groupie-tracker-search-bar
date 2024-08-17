@@ -30,7 +30,7 @@ func main() {
 		}
 
 		// If it's not a known route, use ErrorHandler for 404
-		controllers.ErrorHandler(w, "Page Not Found", http.StatusNotFound)
+		controllers.ErrorHandler(w, "Page Not Found", http.StatusNotFound, true, true)
 	})
 
 	log.Println("Server is running on http://localhost:8080")
