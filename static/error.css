@@ -1,71 +1,175 @@
 @import url('https://fonts.googleapis.com/css2?family=Grandiflora+One&family=Jost:ital,wght@0,100..900;1,100..900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 
-body {
-    background-image: url('/static/1.jpg');
+:root {
+    --primary-color: #ff0000;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+    color: #fff;
+    overflow: hidden;
+    background-image: url("1.jpg")
+}
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    color: #fff; 
-    margin: 0;
-    height: 100vh; 
-    font-family: 'Roboto', sans-serif;
+    z-index: -1;
+    animation: zoomInOut 20s ease-in-out infinite;
 }
 
-/* Style for the error container */
+@keyframes zoomInOut {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
 .error-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
-    padding: 50px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
-    margin: 0 auto;
-    width: 100%;
-    max-width: 600px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 40px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 0 25px rgba(255, 165, 0, 0.5);
+    animation: glowPulse 2s ease-in-out infinite, floatUpDown 4s ease-in-out infinite;
 }
 
-/* Style for the error code */
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 25px rgba(255, 165, 0, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(255, 165, 0, 0.8); }
+}
+
+@keyframes floatUpDown {
+    0%, 100% { transform: translate(-50%, -50%); }
+    50% { transform: translate(-50%, -55%); }
+}
+
 .error-code {
     font-size: 5rem;
     margin: 0;
-    color: #e74c3c;
+    color: var(--primary-color);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-/* Style for the error message with Google Font applied */
 .error-message {
     font-size: 1.5rem;
-    color: #ecf0f1;
+    color: #feca57;
+    margin: 20px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
-/* Style for the back button */
+hr {
+    border: none;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    margin: 20px 0;
+    width: 100%;
+    animation: expandLine 1.5s ease-out;
+}
+
+@keyframes expandLine {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
 .back-button {
     text-decoration: none;
     color: #fff;
-    background-color: #007bff;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 1rem;
+    background-color: var(--primary-color);
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1.2rem;
     margin-top: 20px;
     display: inline-block;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Keyframes */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+.back-button:hover {
+    background-color: #fd79a8;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(253, 121, 168, 0.5);
 }
 
-/* For small phones (portrait) */
-@media (max-width: 576px) {
+/* Media Queries */
+@media (max-width: 768px) {
+    .error-container {
+        padding: 30px;
+        max-width: 400px;
+    }
     .error-code {
-        font-size: 3rem;
+        font-size: 4.5rem;
     }
     .error-message {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
+    }
+    .back-button {
+        font-size: 1.1rem;
+        padding: 10px 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .error-container {
+        padding: 25px;
+        max-width: 70%;
+    }
+    .error-code {
+        font-size: 4rem;
+    }
+    .error-message {
+        font-size: 1.2rem;
     }
     .back-button {
         font-size: 1rem;
+        padding: 8px 16px;
     }
-} 
+}
+
+@media (max-width: 400px) {
+    .error-container {
+        padding: 20px;
+    }
+    .error-code {
+        font-size: 3.5rem;
+    }
+    .error-message {
+        font-size: 1.1rem;
+    }
+    .back-button {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+    }
+}
+
+@media (max-height: 600px) {
+    .error-container {
+        padding: 15px;
+    }
+    .error-code {
+        font-size: 3.5rem;
+    }
+    .error-message {
+        font-size: 1.1rem;
+        margin: 15px 0;
+    }
+    hr {
+        margin: 15px 0;
+    }
+    .back-button {
+        margin-top: 15px;
+    }
+}
