@@ -11,8 +11,8 @@
   --primary-color: #ff0000;
   --secondary-color: #333333;
   --background-color: black;
-  --text-color: #000000;
-  --card-background: #ffffff;
+  --text-color: #ffffff;
+  --card-background: #333333;
 }
 
 ol,
@@ -25,6 +25,8 @@ li {
 body {
   display: grid;
   place-items: center;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 body header {
@@ -48,12 +50,12 @@ body header .navbar {
 body header .navbar .logo {
   font-size: 28px;
   font-weight: bold;
-  color: var(--card-background);
+  color: var(--text-color);
 }
 
 body header .navbar a {
   background-color: var(--primary-color);
-  color: var(--card-background);
+  color: var(--text-color);
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 20px;
@@ -68,9 +70,10 @@ body header .navbar a {
 .container .accordion {
   width: 100%;
   padding: 20px;
-  border: 1px solid var(--secondary-color);
+  border: 1px solid var(--text-color);
   border-radius: 10px;
   margin: 0 auto 10px;
+  background-color: var(--card-background);
 }
 
 .container .accordion .answer {
