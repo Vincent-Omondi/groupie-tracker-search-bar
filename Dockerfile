@@ -13,7 +13,7 @@ WORKDIR /app
 COPY go.mod .
 
 # Install go.mod dependancies
-RUN go.mod download
+RUN go mod download
 
 # Copy the rest of the source code
 COPY . .
