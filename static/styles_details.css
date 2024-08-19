@@ -86,7 +86,7 @@ body {
 
 .artist-info p {
   margin: 10px 0;
-  font-size: 16px;
+  font-size: 19px;
 }
 
 .tab-container {
@@ -144,9 +144,9 @@ body {
 }
 
 .relation-location {
-  font-size: 18px;
+  font-size: 21px;
   font-weight: bold;
-  color: var(--primary-color);
+  color: var(--card-background);
   margin-bottom: 10px;
 }
 
@@ -159,6 +159,25 @@ body {
   margin: 5px 0;
   font-size: 14px;
   color: #bdbdbd;
+}
+
+#dates ul, #locations ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#dates li, #locations li {
+  font-size: 18px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+#dates li:hover, #locations li:hover {
+  transform: translateY(-3px);
+  background-color: #3a3a3a;
 }
 
 @media (max-width: 768px) {
@@ -182,7 +201,7 @@ body {
   }
 
   .relation-location {
-      font-size: 16px;
+      font-size: 18px;
   }
 }
 
@@ -201,14 +220,14 @@ body {
   }
 
   .tab-container {
-      justify-content: center;
+    justify-content: center;
   }
 
   .tab {
-      margin-right: 5px;
-      margin-left: 5px;
-      padding: 8px 16px;
-      font-size: 12px;
+    margin-right: 5px;
+    margin-left: 5px;
+    padding: 8px 16px;
+    font-size: 12px;
   }
 }
 
