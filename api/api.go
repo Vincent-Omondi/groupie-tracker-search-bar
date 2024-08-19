@@ -36,7 +36,7 @@ type Relation struct {
 	DatesLocations map[string][]string `json:"datesLocations"`
 }
 
-const (
+var (
 	ArtistsURL   = "https://groupietrackers.herokuapp.com/api/artists"
 	LocationsURL = "https://groupietrackers.herokuapp.com/api/locations"
 	DatesURL     = "https://groupietrackers.herokuapp.com/api/dates"
