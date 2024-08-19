@@ -4,7 +4,7 @@ groupie tracker consists of receiving a given API and manipulating the data cont
 
 ## Project Overview
 
-![](./static/imgs/background.png)
+![](./static/img/background.png)
 
 ## Prerequisites
 
@@ -66,7 +66,7 @@ Key features include:
 
 Once the application is running, you can access it at `http://localhost:8080/` to view the list of artists. You can view details of a single artist by clicking on their image or navigating to `/artist/{id}`, replacing `{id}` with the artist’s ID e.g `http://localhost:8080/artist/18`.
 
-![](./static/imgs/artist-details.png)
+![](./static/img/artist-details.png)
 
 ## Contributors
 
