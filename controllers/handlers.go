@@ -36,9 +36,8 @@ var (
 const cacheDuration = 10 * time.Minute
 
 // ErrorHandler handles error responses and templates
-// ErrorHandler handles error responses and templates
 func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logError, showStatusCode bool) {
-	w.WriteHeader(statusCode) // Set the status code
+	w.WriteHeader(statusCode)
 
 	data := struct {
 		StatusCode int
@@ -98,7 +97,7 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 
 	// Check if no results were found and query is not empty
 	if len(filteredArtists) == 0 && query != "" {
-		ErrorHandler(w, "We couldn't find any artists matching your search criteria. Please try a different term or check your spelling.", http.StatusNotFound, false, false)
+		ErrorHandler(w, "No Result Found for this search.", http.StatusNotFound, false, false)
 		return
 	}
 
