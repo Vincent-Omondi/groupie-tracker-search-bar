@@ -54,7 +54,7 @@ func TestGetArtists(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if artists[0].Name != "Queen"{
+	if artists[0].Name != "Queen" {
 		t.Errorf("Expected artist names to be 'Queen' , got %v", artists[0].Name)
 	}
 }
@@ -85,9 +85,8 @@ func TestGetLocations(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-
 	if locations[0].Locations[0] != "north_carolina-usa" {
-		t.Errorf("Expected locations to be 'north_carolina-usa', got %v", locations[0].Locations[0],)
+		t.Errorf("Expected locations to be 'north_carolina-usa', got %v", locations[0].Locations[0])
 	}
 }
 
@@ -115,7 +114,7 @@ func TestGetDates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	if dates[0].Dates[0] != "*23-08-2019"{
+	if dates[0].Dates[0] != "*23-08-2019" {
 		t.Errorf("Expected dates to be '*23-08-2019', got %v", dates[0].Dates[0])
 	}
 }
@@ -128,12 +127,12 @@ func TestGetRelations(t *testing.T) {
 			{
 				ID: 1,
 				DatesLocations: map[string][]string{
-					"north_carolina-usa": {"23-08-2019"},
-					"georgia-usa":        {"22-08-2019"},
-					"los_angeles-usa":    {"20-08-2019"},
-					"saitama-japan":      {"26-01-2020"},
-					"osaka-japan":        {"28-01-2020"},
-					"nagoya-japan":       {"30-01-2019"},
+					"north_carolina-usa":  {"23-08-2019"},
+					"georgia-usa":         {"22-08-2019"},
+					"los_angeles-usa":     {"20-08-2019"},
+					"saitama-japan":       {"26-01-2020"},
+					"osaka-japan":         {"28-01-2020"},
+					"nagoya-japan":        {"30-01-2019"},
 					"penrose-new_zealand": {"07-02-2020"},
 					"dunedin-new_zealand": {"10-02-2020"},
 				},
@@ -154,7 +153,7 @@ func TestGetRelations(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if relations[0].DatesLocations["north_carolina-usa"][0] != "23-08-2019"{
+	if relations[0].DatesLocations["north_carolina-usa"][0] != "23-08-2019" {
 		t.Errorf("Expected relations to have specific dates, got %v", relations[0].DatesLocations["north_carolina-usa"][0])
 	}
 }
