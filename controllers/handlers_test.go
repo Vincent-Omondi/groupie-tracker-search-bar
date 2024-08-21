@@ -9,11 +9,11 @@ import (
 )
 
 func TestMain(m *testing.M) {
-    // Change to the directory where the templates are located
-    if err := os.Chdir(".."); err != nil {
-        panic(err)
-    }
-    os.Exit(m.Run())
+	// Change to the directory where the templates are located
+	if err := os.Chdir(".."); err != nil {
+		panic(err)
+	}
+	os.Exit(m.Run())
 }
 
 func TestServeArtists(t *testing.T) {
@@ -30,7 +30,7 @@ func TestServeArtists(t *testing.T) {
 		t.Errorf("Expected status OK; got %v", rr.Code)
 	}
 
-	if !strings.Contains(rr.Body.String(), "Queen") { 
+	if !strings.Contains(rr.Body.String(), "Queen") {
 		t.Errorf("Expected response body to contain 'Queen'")
 	}
 }
