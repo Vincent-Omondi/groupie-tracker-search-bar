@@ -21,11 +21,9 @@ type TemplateData struct {
 
 type ArtistDetailData struct {
 	Artist   api.Artist
-	Relation struct {
-		Locations      []string
-		Dates          []string
-		DatesLocations map[string][]string
-	}
+	Location api.Location
+	Date     api.Date
+	Relation api.Relation
 }
 
 var (
@@ -36,9 +34,8 @@ var (
 const cacheDuration = 10 * time.Minute
 
 // ErrorHandler handles error responses and templates
-// ErrorHandler handles error responses and templates
 func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logError, showStatusCode bool) {
-	w.WriteHeader(statusCode) // Set the status code
+	w.WriteHeader(statusCode)
 
 	data := struct {
 		StatusCode int
@@ -98,7 +95,7 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 
 	// Check if no results were found and query is not empty
 	if len(filteredArtists) == 0 && query != "" {
-		ErrorHandler(w, "We couldn't find any artists matching your search criteria. Please try a different term or check your spelling.", http.StatusNotFound, false, false)
+		ErrorHandler(w, "No Result Found for this search.", http.StatusNotFound, false, false)
 		return
 	}
 
@@ -151,31 +148,18 @@ func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	artist, relation, err := api.GetArtistByID(id)
+	artist, location, date, relation, err := api.GetArtistByID(id)
 	if err != nil {
 		log.Printf("Error retrieving artist by ID %v: %s", id, err)
 		ErrorHandler(w, "Ooops!\n We ran into an issue while fetching Artists,\n Please try again later.", http.StatusInternalServerError, false, false)
 		return
 	}
 
-	locations := make([]string, 0, len(relation.DatesLocations))
-	dates := make([]string, 0)
-	for location, datelist := range relation.DatesLocations {
-		locations = append(locations, location)
-		dates = append(dates, datelist...)
-	}
-
 	data := ArtistDetailData{
-		Artist: *artist,
-		Relation: struct {
-			Locations      []string
-			Dates          []string
-			DatesLocations map[string][]string
-		}{
-			Locations:      locations,
-			Dates:          dates,
-			DatesLocations: relation.DatesLocations,
-		},
+		Artist:   *artist,
+		Location: *location,
+		Date:     *date,
+		Relation: *relation,
 	}
 
 	tmpl, err := template.ParseFiles("templates/artist_details.html")
@@ -276,24 +260,28 @@ func GetArtistByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	artist, relation, err := api.GetArtistByID(artistID)
+	artist, location, date, relation, err := api.GetArtistByID(artistID)
 	if err != nil {
 		// Check if the artist was not found
 		if err.Error() == "artist not found" {
 			ErrorHandler(w, "Artist not found. Please check the ID and try again.", http.StatusNotFound, true, true)
 		} else {
-			log.Printf("Error fetching artist or relation with ID %d: %v", artistID, err)
+			log.Printf("Error fetching artist details with ID %d: %v", artistID, err)
 			ErrorHandler(w, "Unable to retrieve artist details at this time. Please try again later.", http.StatusInternalServerError, false, false)
 		}
 		return
 	}
 
-	// Create a response combining artist and relation data
+	// Create a response combining artist, location, date, and relation data
 	response := struct {
 		Artist   *api.Artist   `json:"artist"`
+		Location *api.Location `json:"location"`
+		Date     *api.Date     `json:"date"`
 		Relation *api.Relation `json:"relation"`
 	}{
 		Artist:   artist,
+		Location: location,
+		Date:     date,
 		Relation: relation,
 	}
 

@@ -1,14 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"learn.zone01kisumu.ke/git/johnodhiambo0/groupie-tracker/controllers"
 )
 
 func main() {
+	if len(os.Args) != 1 {
+		fmt.Println("Incorrect number of arguments passed. Usage: go run .")
+		return
+	}
+
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	http.HandleFunc("/artists", controllers.ServeArtists)
