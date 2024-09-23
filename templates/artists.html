@@ -36,6 +36,38 @@
               placeholder="Search for artists..."
               value="{{.Query}}"
             />
+            <ul id="suggestions"></ul>
+
+          <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.getElementById("search-input");
+            const suggestionsList = document.getElementById("suggestions");
+
+            searchInput.addEventListener("input", function() {
+              const query = searchInput.value.trim();
+              
+              if (query === "") {
+                suggestionsList.innerHTML = ""; // Clear suggestions if input is empty
+                return;
+              }
+
+              fetch(`/suggestions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(suggestions => {
+                  suggestionsList.innerHTML = ""; // Clear previous suggestions
+
+                  suggestions.forEach(suggestion => {
+                    const li = document.createElement("li");
+                    li.textContent = suggestion;
+                    suggestionsList.appendChild(li);
+                  });
+                })
+                .catch(err => {
+                  console.error("Error fetching suggestions:", err);
+                });
+            });
+          });
+          </script>
             <button type="submit" class="search-button" id="search-button">
               <i class="fas fa-search"></i>
             </button>

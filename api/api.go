@@ -129,76 +129,94 @@ func GetRelations() ([]Relation, error) {
 
 // GetArtistByID fetches the artist data by ID and returns the Artist struct along with its relation
 func GetArtistByID(artistID int) (*Artist, *Location, *Date, *Relation, error) {
-    // Fetch artist data
-    artists, err := GetArtists()
-    if err != nil {
-        return nil, nil, nil, nil, err
-    }
+    // Create channels to receive data
+    artistChan := make(chan *Artist, 1)
+    locationChan := make(chan *Location, 1)
+    dateChan := make(chan *Date, 1)
+    relationChan := make(chan *Relation, 1)
+    errChan := make(chan error, 4)
 
-    // Find the artist with the specified ID
+    // Goroutines to fetch each piece of data concurrently
+    go func() {
+        artists, err := GetArtists()
+        if err != nil {
+            errChan <- err
+            return
+        }
+        for _, a := range artists {
+            if a.ID == artistID {
+                artistChan <- &a
+                return
+            }
+        }
+        errChan <- fmt.Errorf("artist not found")
+    }()
+
+    go func() {
+        locations, err := GetLocations()
+        if err != nil {
+            errChan <- err
+            return
+        }
+        for _, l := range locations {
+            if l.ID == artistID {
+                locationChan <- &l
+                return
+            }
+        }
+        errChan <- fmt.Errorf("location not found for artist")
+    }()
+
+    go func() {
+        dates, err := GetDates()
+        if err != nil {
+            errChan <- err
+            return
+        }
+        for _, d := range dates {
+            if d.ID == artistID {
+                dateChan <- &d
+                return
+            }
+        }
+        errChan <- fmt.Errorf("date not found for artist")
+    }()
+
+    go func() {
+        relations, err := GetRelations()
+        if err != nil {
+            errChan <- err
+            return
+        }
+        for _, r := range relations {
+            if r.ID == artistID {
+                relationChan <- &r
+                return
+            }
+        }
+        errChan <- fmt.Errorf("relation not found for artist")
+}()
+
+    // Variables to hold fetched data
     var artist *Artist
-    for _, a := range artists {
-        if a.ID == artistID {
-            artist = &a
-            break
-        }
-    }
-    if artist == nil {
-        return nil, nil, nil, nil, fmt.Errorf("artist not found")
-    }
-
-    // Fetch location data
-    locations, err := GetLocations()
-    if err != nil {
-        return nil, nil, nil, nil, err
-    }
-
-    // Find the location for the specific artist
     var location *Location
-    for _, l := range locations {
-        if l.ID == artistID {
-            location = &l
-            break
-        }
-    }
-    if location == nil {
-        return nil, nil, nil, nil, fmt.Errorf("location not found for artist")
-    }
-
-    // Fetch date data
-    dates, err := GetDates()
-    if err != nil {
-        return nil, nil, nil, nil, err
-    }
-
-    // Find the date for the specific artist
     var date *Date
-    for _, d := range dates {
-        if d.ID == artistID {
-            date = &d
-            break
-        }
-    }
-    if date == nil {
-        return nil, nil, nil, nil, fmt.Errorf("date not found for artist")
-    }
-
-    // Fetch relation data
-    relations, err := GetRelations()
-    if err != nil {
-        return nil, nil, nil, nil, err
-    }
-
-    // Find the relation for the specific artist
     var relation *Relation
-    for _, r := range relations {
-        if r.ID == artistID {
-            relation = &r
-            break
+
+    // Use a loop to gather data from channels
+    for i := 0; i < 4; i++ {
+        select {
+        case a := <-artistChan:
+            artist = a
+        case l := <-locationChan:
+            location = l
+        case d := <-dateChan:
+            date = d
+        case r := <-relationChan:
+            relation = r
+        case err := <-errChan:
+            return nil, nil, nil, nil, err
         }
-    }
-    if relation == nil {
-        return nil, nil, nil, nil, fmt.Errorf("relation not found for artist")
     }
 
     return artist, location, date, relation, nil

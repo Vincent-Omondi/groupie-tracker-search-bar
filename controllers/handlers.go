@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -126,13 +127,90 @@ func filterArtists(artists []api.Artist, query string) []api.Artist {
 		return artists
 	}
 
+	query = strings.ToLower(query)
 	var result []api.Artist
+
 	for _, a := range artists {
-		if strings.Contains(strings.ToLower(a.Name), strings.ToLower(query)) {
+		// Artist/band name matches
+		if strings.Contains(strings.ToLower(a.Name), query) {
 			result = append(result, a)
+			continue
 		}
-	}
+
+		// Members
+		for _, member := range a.Members {
+			if strings.Contains(strings.ToLower(member), query) {
+                result = append(result, a)
+                break
+            }
+		}
+
+		// Locations
+		if strings.Contains(strings.ToLower(a.Locations), query){
+			result = append(result, a)
+			continue
+		}
+
+		// First album dates
+		if strings.Contains(strings.ToLower(a.FirstAlbum), query){
+			result = append(result, a)
+            continue
+		}
+
+		// creation dates
+		if strings.Contains(strconv.Itoa(a.CreationDate), query) {
+			result = append(result, a)
+			continue
+		}
+	
+	}	
 	return result
+}
+
+func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	if query == " " {
+		json.NewEncoder(w).Encode([]string{})
+		return
+	}
+
+	suggestions := []string{}
+	artists,_ := api.GetArtists()
+
+	for _, artist := range artists {
+        // Artist/band name
+        if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(query)) {
+            suggestions = append(suggestions, fmt.Sprintf("%s - artist/band", artist.Name))
+        }
+
+        // Members
+        for _, member := range artist.Members {
+            if strings.Contains(strings.ToLower(member), strings.ToLower(query)) {
+                suggestions = append(suggestions, fmt.Sprintf("%s - member", member))
+            }
+        }
+
+        // Locations
+        locations := strings.Split(artist.Locations, ",")
+        for _, location := range locations {
+            if strings.Contains(strings.ToLower(location), strings.ToLower(query)) {
+                suggestions = append(suggestions, fmt.Sprintf("%s - location", strings.TrimSpace(location)))
+            }
+        }
+
+        // First album date
+        if strings.Contains(strings.ToLower(artist.FirstAlbum), strings.ToLower(query)) {
+            suggestions = append(suggestions, fmt.Sprintf("%s - first album date", artist.FirstAlbum))
+        }
+
+        // Creation date
+        if strings.Contains(strconv.Itoa(artist.CreationDate), query) {
+            suggestions = append(suggestions, fmt.Sprintf("%d - creation date", artist.CreationDate))
+        }
+    }
+
+    json.NewEncoder(w).Encode(suggestions)
+
 }
 
 func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
