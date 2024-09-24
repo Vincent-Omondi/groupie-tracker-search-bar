@@ -51,11 +51,11 @@
                 return;
               }
 
-              fetch(`/suggestions?q=${encodeURIComponent(query)}`)
+              fetch(`/search-suggestions?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(suggestions => {
                   suggestionsList.innerHTML = ""; // Clear previous suggestions
-
+                   console.log(suggestions)
                   suggestions.forEach(suggestion => {
                     const li = document.createElement("li");
                     li.textContent = suggestion;

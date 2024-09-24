@@ -173,7 +173,7 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode([]string{})
 		return
 	}
-
+    fmt.Println("called")
 	suggestions := []string{}
 	artists,_ := api.GetArtists()
 

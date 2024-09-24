@@ -21,6 +21,7 @@ func main() {
 	http.HandleFunc("/artists", controllers.ServeArtists)
 	http.HandleFunc("/artist/", controllers.ServeArtistDetails)
 	http.HandleFunc("/about", controllers.AboutHandler)
+	http.HandleFunc("/search-suggestions", controllers.GetSearchSuggestionsHandler)
 
 	// Catch-all for undefined routes
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
