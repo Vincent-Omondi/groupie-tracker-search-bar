@@ -1,99 +1,73 @@
-// static/search.js
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
-    const contentGrid = document.getElementById('content-grid');
-    const contentCards = Array.from(contentGrid.querySelectorAll('.content-card'));
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("search-input");
+  const suggestionsList = document.getElementById("suggestions");
+  const searchButton = document.getElementById("search-button");
 
-    let artists = contentCards.map(card => ({
-        name: card.querySelector('.content-title').textContent,
-        element: card
-    }));
+  // Debounce function
+  function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+  }
 
-    function autocomplete(inp, arr) {
-        let currentFocus;
-        inp.addEventListener("input", function(e) {
-            let a, b, i, val = this.value;
-            closeAllLists();
-            if (!val) { return false;}
-            currentFocus = -1;
-            a = document.createElement("DIV");
-            a.setAttribute("id", this.id + "autocomplete-list");
-            a.setAttribute("class", "autocomplete-items");
-            this.parentNode.appendChild(a);
-            for (i = 0; i < arr.length; i++) {
-                if (arr[i].name.substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-                    b = document.createElement("DIV");
-                    b.innerHTML = "<strong>" + arr[i].name.substr(0, val.length) + "</strong>";
-                    b.innerHTML += arr[i].name.substr(val.length);
-                    b.innerHTML += "<input type='hidden' value='" + arr[i].name + "'>";
-                    b.addEventListener("click", function(e) {
-                        inp.value = this.getElementsByTagName("input")[0].value;
-                        closeAllLists();
-                        performSearch();
-                    });
-                    a.appendChild(b);
-                }
-            }
-        });
-        inp.addEventListener("keydown", function(e) {
-            var x = document.getElementById(this.id + "autocomplete-list");
-            if (x) x = x.getElementsByTagName("div");
-            if (e.keyCode == 40) {
-                currentFocus++;
-                addActive(x);
-            } else if (e.keyCode == 38) {
-                currentFocus--;
-                addActive(x);
-            } else if (e.keyCode == 13) {
-                e.preventDefault();
-                if (currentFocus > -1) {
-                    if (x) x[currentFocus].click();
-                }
-            }
-        });
-        function addActive(x) {
-            if (!x) return false;
-            removeActive(x);
-            if (currentFocus >= x.length) currentFocus = 0;
-            if (currentFocus < 0) currentFocus = (x.length - 1);
-            x[currentFocus].classList.add("autocomplete-active");
-        }
-        function removeActive(x) {
-            for (var i = 0; i < x.length; i++) {
-                x[i].classList.remove("autocomplete-active");
-            }
-        }
-        function closeAllLists(elmnt) {
-            var x = document.getElementsByClassName("autocomplete-items");
-            for (var i = 0; i < x.length; i++) {
-                if (elmnt != x[i] && elmnt != inp) {
-                    x[i].parentNode.removeChild(x[i]);
-                }
-            }
-        }
-        document.addEventListener("click", function (e) {
-            closeAllLists(e.target);
-        });
+  // Throttled search function
+  const throttledSearch = debounce((query) => {
+    if (query === "") {
+      suggestionsList.innerHTML = ""; // Clear suggestions if input is empty
+      return;
     }
 
-    function performSearch() {
-        const query = searchInput.value.toLowerCase();
-        artists.forEach(artist => {
-            if (artist.name.toLowerCase().includes(query)) {
-                artist.element.style.display = '';
-            } else {
-                artist.element.style.display = 'none';
-            }
+    fetch(`/search-suggestions?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(suggestions => {
+        suggestionsList.innerHTML = "";
+        const seenSuggestions = new Set();  // Track unique name-type combinations
+        
+        suggestions.forEach(suggestion => {
+          const nameTypeCombo = suggestion.toLowerCase();  // Make case-insensitive comparison
+          
+          if (!seenSuggestions.has(nameTypeCombo)) {  // Only add if not seen
+            seenSuggestions.add(nameTypeCombo);
+
+            const li = document.createElement("li");
+            li.textContent = suggestion;
+            li.addEventListener("click", () => {
+              searchInput.value = suggestion.split(" - ")[0]; // Set the input value to the artist/member name
+              performSearch(searchInput.value);
+            });
+            suggestionsList.appendChild(li);
+          }
         });
+      })
+      .catch(err => {
+        console.error("Error fetching suggestions:", err);
+      });
+  }, 500);
+
+  function performSearch(query) {
+    window.location.href = `/?query=${encodeURIComponent(query)}`;
+  }
+
+  searchInput.addEventListener("input", function() {
+    const query = searchInput.value.trim();
+    throttledSearch(query);
+  });
+
+  searchButton.addEventListener("click", function() {
+    performSearch(searchInput.value.trim());
+  });
+
+  document.addEventListener("click", function(event) {
+    if (!searchInput.contains(event.target) && !suggestionsList.contains(event.target)) {
+      suggestionsList.innerHTML = "";
     }
+  });
 
-    autocomplete(searchInput, artists);
-
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('keyup', function(event) {
-        if (event.key === 'Enter') {
-            performSearch();
-        }
-    });
+  // Handle form submission
+  searchInput.closest("form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    performSearch(searchInput.value.trim());
+  });
 });
