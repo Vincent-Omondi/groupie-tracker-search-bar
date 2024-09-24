@@ -10,6 +10,31 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <title>Groupie Tracker</title>
+    <style>
+      .autocomplete-items {
+          position: absolute;
+          border: 1px solid #d4d4d4;
+          border-bottom: none;
+          border-top: none;
+          z-index: 99;
+          top: 100%;
+          left: 0;
+          right: 0;
+      }
+      .autocomplete-items div {
+          padding: 10px;
+          cursor: pointer;
+          background-color: #2b0be2;
+          border-bottom: 1px solid #d4d4d4;
+      }
+      .autocomplete-items div:hover {
+          background-color: #e9e9e9;
+      }
+      .autocomplete-active {
+          background-color: DodgerBlue !important;
+          color: #ffffff;
+      }
+  </style>
   </head>
   <body>
     <header>
@@ -27,7 +52,7 @@
           Groupie Trackers brings you closer to the music you love.
         </h3>
         <div class="search-container">
-          <form action="/artists" method="get">
+          <div class ="autocomplete" style="width: 500px;">
             <input
               type="search"
               name="query"
@@ -36,42 +61,11 @@
               placeholder="Search for artists..."
               value="{{.Query}}"
             />
-            <ul id="suggestions"></ul>
-
-          <script>
-          document.addEventListener("DOMContentLoaded", () => {
-            const searchInput = document.getElementById("search-input");
-            const suggestionsList = document.getElementById("suggestions");
-
-            searchInput.addEventListener("input", function() {
-              const query = searchInput.value.trim();
-              
-              if (query === "") {
-                suggestionsList.innerHTML = ""; // Clear suggestions if input is empty
-                return;
-              }
-
-              fetch(`/suggestions?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(suggestions => {
-                  suggestionsList.innerHTML = ""; // Clear previous suggestions
-
-                  suggestions.forEach(suggestion => {
-                    const li = document.createElement("li");
-                    li.textContent = suggestion;
-                    suggestionsList.appendChild(li);
-                  });
-                })
-                .catch(err => {
-                  console.error("Error fetching suggestions:", err);
-                });
-            });
-          });
-          </script>
+            <!-- <ul id="suggestions"></ul> -->
             <button type="submit" class="search-button" id="search-button">
               <i class="fas fa-search"></i>
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
@@ -118,6 +112,6 @@
         <p>&copy; 2024 Groupie Tracker. All Rights Reserved.</p>
       </div>
     </footer>
-    <script src="/static/scripts2.js"></script>
+    <script src="/static/search.js"></script>
   </body>
 </html>
