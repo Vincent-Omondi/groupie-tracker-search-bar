@@ -22,14 +22,16 @@ type TemplateData struct {
 
 type ArtistDetailData struct {
 	Artist   api.Artist
-	Location api.Location
+	Location []string
 	Date     api.Date
 	Relation api.Relation
 }
 
 var (
-	artistCache []api.Artist
-	cacheTime   time.Time
+	artistCache       []api.Artist
+	locationCache     map[int][]string
+	cacheTime         time.Time
+	locationCacheTime time.Time
 )
 
 const cacheDuration = 10 * time.Minute
@@ -92,6 +94,20 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 		cacheTime = time.Now()
 	}
 
+	// check if location cache is valid
+	if time.Since(locationCacheTime) > cacheDuration || locationCache == nil {
+		locationCache = make(map[int][]string)
+		for _, artist := range artistCache {
+			locations, err := api.GetLocationsByArtistID(artist.ID)
+			if err != nil {
+				log.Printf("Error getting locations for artist %d: %v", artist.ID, err)
+				continue
+			}
+			locationCache[artist.ID] = locations
+		}
+		locationCacheTime = time.Now()
+	}
+
 	filteredArtists := filterArtists(artistCache, query)
 
 	// Check if no results were found and query is not empty
@@ -145,6 +161,15 @@ func filterArtists(artists []api.Artist, query string) []api.Artist {
 			}
 		}
 
+		// Locations
+		locations := strings.Split(a.Locations, ",")
+		for _, location := range locations {
+			if strings.Contains(strings.ToLower(strings.TrimSpace(location)), query) {
+				result = append(result, a)
+				break
+			}
+		}
+
 		// First album dates
 		if strings.Contains(strings.ToLower(a.FirstAlbum), query) {
 			result = append(result, a)
@@ -168,7 +193,6 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	suggestions := []string{}
 	artists, _ := api.GetArtists()
-	// locations, _ := api.GetLocations()
 
 	for _, artist := range artists {
 		// Artist/band name
@@ -183,12 +207,15 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// // Locations
-		// for _, location := range locations.Locations {
-		// 	if string.Contains(strings.ToLower(location), strings.ToLower(query)) {
-		// 		suggestions = append(suggestions, fmt.Sprintf("%s - location", location))
-		// 	}
-		// }
+		// Locations
+		locations, _ := api.GetLocationsByArtistID(artist.ID)
+		// locations := strings.Split(artistLocations,",")
+		for _, location := range locations {
+			// trimmedLocations := strings.TrimSpace(location)
+			if strings.Contains(strings.ToLower(strings.TrimSpace(location)), strings.ToLower(query)) {
+				suggestions = append(suggestions, fmt.Sprintf("%s - location", location))
+			}
+		}
 
 		// First album date
 		if strings.Contains(strings.ToLower(artist.FirstAlbum), strings.ToLower(query)) {
@@ -218,16 +245,23 @@ func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	artist, location, date, relation, err := api.GetArtistByID(id)
+	artist, _, date, relation, err := api.GetArtistByID(id)
 	if err != nil {
 		log.Printf("Error retrieving artist by ID %v: %s", id, err)
 		ErrorHandler(w, "Ooops!\n We ran into an issue while fetching Artists,\n Please try again later.", http.StatusInternalServerError, false, false)
 		return
 	}
 
+	locations, err := api.GetLocationsByArtistID(id)
+	if err != nil {
+		log.Printf("Error retrieving locations for artist ID %v: %s", id, err)
+		ErrorHandler(w, "Ooops! Could not retrieve locations.", http.StatusInternalServerError, false, false)
+		return
+	}
+
 	data := ArtistDetailData{
 		Artist:   *artist,
-		Location: *location,
+		Location: locations,
 		Date:     *date,
 		Relation: *relation,
 	}
