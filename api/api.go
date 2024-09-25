@@ -129,95 +129,121 @@ func GetRelations() ([]Relation, error) {
 
 // GetArtistByID fetches the artist data by ID and returns the Artist struct along with its relation
 func GetArtistByID(artistID int) (*Artist, *Location, *Date, *Relation, error) {
-    // Create channels to receive data
-    artistChan := make(chan *Artist, 1)
-    locationChan := make(chan *Location, 1)
-    dateChan := make(chan *Date, 1)
-    relationChan := make(chan *Relation, 1)
-    errChan := make(chan error, 4)
+	// Create channels to receive data
+	artistChan := make(chan *Artist, 1)
+	locationChan := make(chan *Location, 1)
+	dateChan := make(chan *Date, 1)
+	relationChan := make(chan *Relation, 1)
+	errChan := make(chan error, 4)
 
-    // Goroutines to fetch each piece of data concurrently
-    go func() {
-        artists, err := GetArtists()
-        if err != nil {
-            errChan <- err
-            return
-        }
-        for _, a := range artists {
-            if a.ID == artistID {
-                artistChan <- &a
-                return
-            }
-        }
-        errChan <- fmt.Errorf("artist not found")
-    }()
+	// Goroutines to fetch each piece of data concurrently
+	go func() {
+		artists, err := GetArtists()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, a := range artists {
+			if a.ID == artistID {
+				artistChan <- &a
+				return
+			}
+		}
+		errChan <- fmt.Errorf("artist not found")
+	}()
 
-    go func() {
-        locations, err := GetLocations()
-        if err != nil {
-            errChan <- err
-            return
-        }
-        for _, l := range locations {
-            if l.ID == artistID {
-                locationChan <- &l
-                return
-            }
-        }
-        errChan <- fmt.Errorf("location not found for artist")
-    }()
+	go func() {
+		locations, err := GetLocations()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, l := range locations {
+			if l.ID == artistID {
+				locationChan <- &l
+				return
+			}
+		}
+		errChan <- fmt.Errorf("location not found for artist")
+	}()
 
-    go func() {
-        dates, err := GetDates()
-        if err != nil {
-            errChan <- err
-            return
-        }
-        for _, d := range dates {
-            if d.ID == artistID {
-                dateChan <- &d
-                return
-            }
-        }
-        errChan <- fmt.Errorf("date not found for artist")
-    }()
+	go func() {
+		dates, err := GetDates()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, d := range dates {
+			if d.ID == artistID {
+				dateChan <- &d
+				return
+			}
+		}
+		errChan <- fmt.Errorf("date not found for artist")
+	}()
 
-    go func() {
-        relations, err := GetRelations()
-        if err != nil {
-            errChan <- err
-            return
-        }
-        for _, r := range relations {
-            if r.ID == artistID {
-                relationChan <- &r
-                return
-            }
-        }
-        errChan <- fmt.Errorf("relation not found for artist")
-}()
+	go func() {
+		relations, err := GetRelations()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, r := range relations {
+			if r.ID == artistID {
+				relationChan <- &r
+				return
+			}
+		}
+		errChan <- fmt.Errorf("relation not found for artist")
+	}()
 
-    // Variables to hold fetched data
-    var artist *Artist
-    var location *Location
-    var date *Date
-    var relation *Relation
+	// Variables to hold fetched data
+	var artist *Artist
+	var location *Location
+	var date *Date
+	var relation *Relation
 
-    // Use a loop to gather data from channels
-    for i := 0; i < 4; i++ {
-        select {
-        case a := <-artistChan:
-            artist = a
-        case l := <-locationChan:
-            location = l
-        case d := <-dateChan:
-            date = d
-        case r := <-relationChan:
-            relation = r
-        case err := <-errChan:
-            return nil, nil, nil, nil, err
-        }
-    }
+	// Use a loop to gather data from channels
+	for i := 0; i < 4; i++ {
+		select {
+		case a := <-artistChan:
+			artist = a
+		case l := <-locationChan:
+			location = l
+		case d := <-dateChan:
+			date = d
+		case r := <-relationChan:
+			relation = r
+		case err := <-errChan:
+			return nil, nil, nil, nil, err
+		}
+	}
 
-    return artist, location, date, relation, nil
+	return artist, location, date, relation, nil
+}
+
+// GetLocationsByArtistID fetches the locations for a specific artist by their ID
+func GetLocationsByArtistID(artistID int) ([]string, error) {
+	// Construct the URL for the API call to get locations for the specific artist
+	url := fmt.Sprintf("https://groupietrackers.herokuapp.com/api/locations/%d", artistID)
+
+	// Make the HTTP request to the locations API
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching locations for artist %d: %v", artistID, err)
+	}
+	defer resp.Body.Close()
+
+	// Check for a non-200 status code
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("received non-200 response: %d", resp.StatusCode)
+	}
+
+	// Parse the JSON response into a Location struct
+	var locationData Location
+	err = json.NewDecoder(resp.Body).Decode(&locationData)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding location data: %v", err)
+	}
+	return locationData.Locations, nil
 }
