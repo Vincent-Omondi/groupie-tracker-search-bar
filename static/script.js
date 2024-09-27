@@ -17,27 +17,30 @@ function switchTab(clickedTab) {
     // Add logic here to show/hide content based on the selected tab
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for tabs
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            switchTab(this);
+        });
+    });
+
+    // Add scroll event listener
     var topbar = document.getElementById("topbar");
     var mainContent = document.getElementById("main-content");
-    window.addEventListener("scroll", function() {
-        if (window.scrollY > mainContent.offsetTop - topbar.offsetHeight) {
-            topbar.classList.add("scrolled");
-        } else {
-            topbar.classList.remove("scrolled");
+    window.addEventListener('scroll', function() {
+        const topbar = document.querySelector('.topbar');
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            const mainContentTop = mainContent.offsetTop;
+            if (window.scrollY >= mainContentTop) {
+                topbar.classList.add('scrolled');
+            } else {
+                topbar.classList.remove('scrolled');
+            }
         }
     });
-});
-
-window.addEventListener('scroll', function() {
-    const topbar = document.querySelector('.topbar');
-    const mainContent = document.querySelector('.main-content');
-    const mainContentTop = mainContent.offsetTop;
-    if (window.scrollY >= mainContentTop) {
-        topbar.classList.add('scrolled');
-    } else {
-        topbar.classList.remove('scrolled');
-    }
 });
 
 function openTab(evt, tabName) {
