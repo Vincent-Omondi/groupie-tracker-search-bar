@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -28,11 +29,77 @@ type ArtistDetailData struct {
 }
 
 var (
-	artistCache []api.Artist
-	cacheTime   time.Time
+	artistCache        []api.Artist
+	locationCache      []api.Location
+	dateCache          []api.Date
+	relationCache      []api.Relation
+	cacheTime          time.Time
+	cacheMutex         sync.RWMutex
+	isCacheInitialized bool
 )
 
 const cacheDuration = 10 * time.Minute
+
+func initCache() {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	if !isCacheInitialized {
+		updateCache()
+		isCacheInitialized = true
+	}
+}
+
+func updateCache() {
+	var wg sync.WaitGroup
+	wg.Add(4)
+
+	go func() {
+		defer wg.Done()
+		artists, err := api.GetArtists()
+		if err == nil {
+			artistCache = artists
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		locations, err := api.GetLocations()
+		if err == nil {
+			locationCache = locations
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		dates, err := api.GetDates()
+		if err == nil {
+			dateCache = dates
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		relations, err := api.GetRelations()
+		if err == nil {
+			relationCache = relations
+		}
+	}()
+
+	wg.Wait()
+	cacheTime = time.Now()
+}
+
+func getCachedData() ([]api.Artist, []api.Location, []api.Date, []api.Relation) {
+	cacheMutex.RLock()
+	defer cacheMutex.RUnlock()
+
+	if time.Since(cacheTime) > cacheDuration {
+		go updateCache()
+	}
+
+	return artistCache, locationCache, dateCache, relationCache
+}
 
 // ErrorHandler handles error responses and templates
 func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logError, showStatusCode bool) {
@@ -77,22 +144,14 @@ func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logErro
 }
 
 // ServeArtists handles the /artists route
+// ServeArtists handles the /artists route
 func ServeArtists(w http.ResponseWriter, r *http.Request) {
+	initCache()
 	query := r.URL.Query().Get("query")
 
-	// Check if cache is valid
-	if time.Since(cacheTime) > cacheDuration || artistCache == nil {
-		artists, err := api.GetArtists()
-		if err != nil {
-			log.Printf("Error getting artists: %v", err)
-			ErrorHandler(w, "Oops!\n We ran into an issue while fetching Artists,\n Please try again later.", http.StatusInternalServerError, false, false)
-			return
-		}
-		artistCache = artists
-		cacheTime = time.Now()
-	}
+	artists, _, _, _ := getCachedData()
 
-	filteredArtists := filterArtists(artistCache, query)
+	filteredArtists := filterArtists(artists, query)
 
 	// Check if no results were found and query is not empty
 	if len(filteredArtists) == 0 && query != "" {
@@ -161,13 +220,14 @@ func filterArtists(artists []api.Artist, query string) []api.Artist {
 }
 
 func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
+	initCache()
 	query := r.URL.Query().Get("q")
 	if query == " " {
 		json.NewEncoder(w).Encode([]string{})
 		return
 	}
 	suggestions := []string{}
-	artists, _ := api.GetArtists()
+	artists, locations, _, _ := getCachedData()
 	// locations, _ := api.GetLocations()
 
 	for _, artist := range artists {
@@ -183,13 +243,6 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// // Locations
-		// for _, location := range locations.Locations {
-		// 	if string.Contains(strings.ToLower(location), strings.ToLower(query)) {
-		// 		suggestions = append(suggestions, fmt.Sprintf("%s - location", location))
-		// 	}
-		// }
-
 		// First album date
 		if strings.Contains(strings.ToLower(artist.FirstAlbum), strings.ToLower(query)) {
 			suggestions = append(suggestions, fmt.Sprintf("%s - first album date", artist.FirstAlbum))
@@ -201,6 +254,13 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	for _, location := range locations {
+		for _, loc := range location.Locations {
+			if strings.Contains(strings.ToLower(loc), strings.ToLower(query)) {
+				suggestions = append(suggestions, fmt.Sprintf("%s - location", loc))
+			}
+		}
+	}
 	json.NewEncoder(w).Encode(suggestions)
 
 }
@@ -273,12 +333,8 @@ func GetArtistsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetLocationsHandler handles the /locations route
 func GetLocationsHandler(w http.ResponseWriter, r *http.Request) {
-	locations, err := api.GetLocations()
-	if err != nil {
-		log.Printf("Error fetching locations: %v", err)
-		ErrorHandler(w, "Unable to retrieve locations at this time. Please try again later.", http.StatusInternalServerError, false, false)
-		return
-	}
+	initCache()
+	_, locations, _, _ := getCachedData()
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(locations); err != nil {
@@ -290,12 +346,9 @@ func GetLocationsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetDatesHandler handles the /dates route
 func GetDatesHandler(w http.ResponseWriter, r *http.Request) {
-	dates, err := api.GetDates()
-	if err != nil {
-		log.Printf("Error fetching dates: %v", err)
-		ErrorHandler(w, "Unable to retrieve dates at this time. Please try again later.", http.StatusInternalServerError, false, false)
-		return
-	}
+	initCache()
+	_, _, dates, _ := getCachedData()
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(dates); err != nil {
 		log.Printf("Error encoding dates data to JSON: %v", err)
@@ -306,12 +359,9 @@ func GetDatesHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetRelationsHandler handles the /relations route
 func GetRelationsHandler(w http.ResponseWriter, r *http.Request) {
-	relations, err := api.GetRelations()
-	if err != nil {
-		log.Printf("Error fetching relations: %v", err)
-		ErrorHandler(w, "Unable to retrieve relations at this time. Please try again later.", http.StatusInternalServerError, false, false)
-		return
-	}
+	initCache()
+	_, _, _, relations := getCachedData()
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(relations); err != nil {
 		log.Printf("Error encoding relations data to JSON: %v", err)
