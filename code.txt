@@ -1,3 +1,5 @@
+//controllers/handlers.go
+
 package controllers
 
 import (
@@ -151,32 +153,25 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 	artists, _, _, _ := getCachedData()
 
 	// for i := range artists {
-	// 	log.Printf("Locations for artist %d: %v", artists[i].ID, artists[i].Locations)
+	// 	log.Println(artists[i].Locations)
 	// }
 
-	// for i := range artists {
-	// 	log.Println(FetchArtistLocations(artists[i].Locations))
-	// }
-
+	// Fetch locations for all artists and update the Locations field
 	for i := range artists {
-		// Format the URL with the value of i
-		url := fmt.Sprintf("https://groupietrackers.herokuapp.com/api/locations/%d", i+1)
-
-		// Fetch artist locations using the formatted URL
-		locations, err := FetchArtistLocations(url)
+		location, err := FetchArtistLocations(artists[i].Locations)
 		if err == nil {
-			artists[i].Locations = strings.Join(locations, ", ")
+			// Replace the URL string with the actual location
+			artists[i].Locations = location // Single location string
 		} else {
 			log.Printf("Error fetching location for artist %d: %v", artists[i].ID, err)
 		}
-
-		// log.Println(locations)
 	}
 
 	filteredArtists := filterArtists(artists, query)
 
 	// log.Println(filteredArtists)
 
+	// Check if no results were found and query is not empty
 	if len(filteredArtists) == 0 && query != "" {
 		ErrorHandler(w, "No Result Found for this search.", http.StatusNotFound, false, false)
 		return
@@ -239,16 +234,13 @@ func filterArtists(artists []api.Artist, query string) []api.Artist {
 			continue
 		}
 
-		locations, err := FetchArtistLocations(a.Locations)
+		location, err := FetchArtistLocations(a.Locations)
 		if err == nil {
-			for _, loc := range locations {
-				if strings.Contains(strings.ToLower(loc), query) {
-					result = append(result, a)
-					break
-				}
+			if strings.Contains(strings.ToLower(location), query) {
+				a.Locations = location // Set the location string
+				result = append(result, a)
 			}
 		}
-
 	}
 	return result
 }
@@ -286,21 +278,13 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 			suggestions = append(suggestions, fmt.Sprintf("%d - creation date", artist.CreationDate))
 		}
 
-		if strings.Contains(strings.ToLower(artist.Locations), strings.ToLower(query)) {
-			suggestions = append(suggestions, fmt.Sprintf("%s - locations", artist.Locations))
+		// Fetch actual location instead of URL
+		loc, err := FetchArtistLocations(artist.Locations)
+		if err == nil {
+			if strings.Contains(strings.ToLower(loc), strings.ToLower(query)) {
+				suggestions = append(suggestions, fmt.Sprintf("%s - location", loc))
+			}
 		}
-		log.Println(artist.Locations)
-
-		// Fetch actual locations instead of URL
-		// locations, err := FetchArtistLocations(artist.Locations)
-		// log.Println(locations)
-		// if err == nil {
-		// 	for _, loc := range locations {
-		// 		if strings.Contains(strings.ToLower(loc), strings.ToLower(query)) {
-		// 			suggestions = append(suggestions, fmt.Sprintf("%s - location", loc))
-		// 		}
-		// 	}
-		// }
 	}
 
 	json.NewEncoder(w).Encode(suggestions)
@@ -476,18 +460,21 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 
 // Fetch artist locations from the provided URL
 
-func FetchArtistLocations(locationsURL string) ([]string, error) {
+func FetchArtistLocations(locationsURL string) (string, error) {
 	body, err := api.FetchData(locationsURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch location data: %v", err)
+		return "", fmt.Errorf("failed to fetch location data: %v", err)
 	}
 
 	var locationData api.Location
 	if err := json.Unmarshal(body, &locationData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal location data: %v", err)
+		return "", fmt.Errorf("failed to unmarshal location data: %v", err)
 	}
 
-	return locationData.Locations, nil
+	// Join the locations into a single string
+	locationsString := strings.Join(locationData.Locations, ", ")
+
+	return locationsString, nil
 }
 
 // func FetchArtistLocations(locationsURL string) ([]string, error) {
@@ -502,3 +489,325 @@ func FetchArtistLocations(locationsURL string) ([]string, error) {
 // 	}
 // 	return locationData.Locations, nil
 // }
+
+
+api/api.go
+
+package api
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+// Structs to unmarshal JSON data
+type Artist struct {
+	ID           int      `json:"id"`
+	Name         string   `json:"name"`
+	Image        string   `json:"image"`
+	CreationDate int      `json:"creationDate"`
+	FirstAlbum   string   `json:"firstAlbum"`
+	Members      []string `json:"members"`
+	Locations    string   `json:"locations"`
+	ConcertDates string   `json:"concertDates"`
+	Relations    string   `json:"relations"`
+}
+
+type Location struct {
+	ID        int      `json:"id"`
+	Locations []string `json:"locations"`
+	Dates     string   `json:"dates"`
+}
+
+type Date struct {
+	ID    int      `json:"id"`
+	Dates []string `json:"dates"`
+}
+
+type Relation struct {
+	ID             int                 `json:"id"`
+	DatesLocations map[string][]string `json:"datesLocations"`
+}
+
+var (
+	ArtistsURL   = "https://groupietrackers.herokuapp.com/api/artists"
+	LocationsURL = "https://groupietrackers.herokuapp.com/api/locations"
+	DatesURL     = "https://groupietrackers.herokuapp.com/api/dates"
+	RelationURL  = "https://groupietrackers.herokuapp.com/api/relation"
+)
+
+// FetchData makes an HTTP GET request to the given URL and returns the response body
+func FetchData(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch data: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	return body, nil
+}
+
+// GetArtists fetches the artist data from the API and returns a slice of Artist structs
+func GetArtists() ([]Artist, error) {
+	body, err := FetchData(ArtistsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	var artists []Artist
+	if err := json.Unmarshal(body, &artists); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal artists: %v", err)
+	}
+
+	return artists, nil
+}
+
+// GetLocations fetches the location data from the API and returns a slice of Location structs
+func GetLocations() ([]Location, error) {
+	body, err := FetchData(LocationsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	var locations struct {
+		Index []Location `json:"index"`
+	}
+
+	if err := json.Unmarshal(body, &locations); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal locations: %v", err)
+	}
+	return locations.Index, nil
+}
+
+// GetDates fetches the date data from the API and returns a slice of Date structs
+func GetDates() ([]Date, error) {
+	body, err := FetchData(DatesURL)
+	if err != nil {
+		return nil, err
+	}
+
+	var dates struct {
+		Index []Date `json:"index"`
+	}
+
+	if err := json.Unmarshal(body, &dates); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal dates: %v", err)
+	}
+
+	return dates.Index, nil
+}
+
+// GetRelations fetches the relation data from the API and returns a slice of Relation structs
+func GetRelations() ([]Relation, error) {
+	body, err := FetchData(RelationURL)
+	if err != nil {
+		return nil, err
+	}
+
+	var relations struct {
+		Index []Relation `json:"index"`
+	}
+	if err := json.Unmarshal(body, &relations); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal relations: %v", err)
+	}
+
+	return relations.Index, nil
+}
+
+// GetArtistByID fetches the artist data by ID and returns the Artist struct along with its relation
+func GetArtistByID(artistID int) (*Artist, *Location, *Date, *Relation, error) {
+	// Create channels to receive data
+	artistChan := make(chan *Artist, 1)
+	locationChan := make(chan *Location, 1)
+	dateChan := make(chan *Date, 1)
+	relationChan := make(chan *Relation, 1)
+	errChan := make(chan error, 4)
+
+	// Goroutines to fetch each piece of data concurrently
+	go func() {
+		artists, err := GetArtists()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, a := range artists {
+			if a.ID == artistID {
+				artistChan <- &a
+				return
+			}
+		}
+		errChan <- fmt.Errorf("artist not found")
+	}()
+
+	go func() {
+		locations, err := GetLocations()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, l := range locations {
+			if l.ID == artistID {
+				locationChan <- &l
+				// log.Printf("Artist ID %d, Location found: %v", artistID, l.Locations)
+				return
+			}
+		}
+		errChan <- fmt.Errorf("location not found for artist")
+	}()
+
+	go func() {
+		dates, err := GetDates()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, d := range dates {
+			if d.ID == artistID {
+				dateChan <- &d
+				return
+			}
+		}
+		errChan <- fmt.Errorf("date not found for artist")
+	}()
+
+	go func() {
+		relations, err := GetRelations()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		for _, r := range relations {
+			if r.ID == artistID {
+				relationChan <- &r
+				return
+			}
+		}
+		errChan <- fmt.Errorf("relation not found for artist")
+	}()
+
+	// Variables to hold fetched data
+	var artist *Artist
+	var location *Location
+	var date *Date
+	var relation *Relation
+
+	// Use a loop to gather data from channels
+	for i := 0; i < 4; i++ {
+		select {
+		case a := <-artistChan:
+			artist = a
+		case l := <-locationChan:
+			location = l
+		case d := <-dateChan:
+			date = d
+		case r := <-relationChan:
+			relation = r
+		case err := <-errChan:
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	return artist, location, date, relation, nil
+}
+
+
+static/search.js 
+
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("search-input");
+    const suggestionsList = document.getElementById("suggestions");
+    const searchButton = document.getElementById("search-button");
+    let cachedSuggestions = [];
+  
+    // Fetch and cache suggestions on page load
+    fetch('/search-suggestions?q=')
+      .then(response => response.json())
+      .then(suggestions => {
+        cachedSuggestions = suggestions;
+      })
+      .catch(err => {
+        console.error("Error fetching initial suggestions:", err);
+      });
+  
+    // Debounce function
+    function debounce(func, delay) {
+      let timeoutId;
+      return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+  
+    // Filter suggestions based on input
+    function filterSuggestions(query) {
+      query = query.toLowerCase();
+      return cachedSuggestions.filter(suggestion => 
+        suggestion.toLowerCase().includes(query)
+      );
+    }
+  
+    // Display suggestions
+    function displaySuggestions(suggestions) {
+      suggestionsList.innerHTML = "";
+      const seenSuggestions = new Set();
+      
+      suggestions.forEach(suggestion => {
+        const nameTypeCombo = suggestion.toLowerCase();
+        
+        if (!seenSuggestions.has(nameTypeCombo)) {
+          seenSuggestions.add(nameTypeCombo);
+  
+          const li = document.createElement("li");
+          li.textContent = suggestion;
+          li.addEventListener("click", () => {
+            searchInput.value = suggestion.split(" - ")[0];
+            performSearch(searchInput.value);
+          });
+          suggestionsList.appendChild(li);
+        }
+      });
+    }
+  
+    // Throttled search function
+    const throttledSearch = debounce((query) => {
+      if (query === "") {
+        suggestionsList.innerHTML = "";
+        return;
+      }
+  
+      const filteredSuggestions = filterSuggestions(query);
+      displaySuggestions(filteredSuggestions);
+    }, 100);
+  
+    function performSearch(query) {
+      window.location.href = `/?query=${encodeURIComponent(query)}`;
+    }
+  
+    searchInput.addEventListener("input", function() {
+      const query = searchInput.value.trim();
+      throttledSearch(query);
+    });
+  
+    searchButton.addEventListener("click", function() {
+      performSearch(searchInput.value.trim());
+    });
+  
+    document.addEventListener("click", function(event) {
+      if (!searchInput.contains(event.target) && !suggestionsList.contains(event.target)) {
+        suggestionsList.innerHTML = "";
+      }
+    });
+  
+    // // Handle form submission
+    // searchInput.closest("form").addEventListener("submit", function(e) {
+    //   e.preventDefault();
+    //   performSearch(searchInput.value.trim());
+    // });
+  });

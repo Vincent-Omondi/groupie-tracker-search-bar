@@ -41,6 +41,8 @@ func main() {
 		controllers.ErrorHandler(w, "Page Not Found", http.StatusNotFound, true, true)
 	})
 
+	fmt.Println(controllers.FetchArtistLocations("https://groupietrackers.herokuapp.com/api/locations/1"))
+
 	log.Println("Server is running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

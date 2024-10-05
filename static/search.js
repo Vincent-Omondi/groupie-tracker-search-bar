@@ -35,6 +35,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function displaySuggestions(suggestions) {
       suggestionsList.innerHTML = "";
       const seenSuggestions = new Set();
+
+      console.log("Displaying suggestions:", suggestions);
       
       suggestions.forEach(suggestion => {
         const nameTypeCombo = suggestion.toLowerCase();
