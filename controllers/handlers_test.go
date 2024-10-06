@@ -167,3 +167,78 @@ func TestAboutHandler(t *testing.T) {
 		t.Errorf("Expected response body to contain 'About'")
 	}
 }
+
+func TestGetSearchSuggestionsHandler(t *testing.T) {
+	req, err := http.NewRequest("GET", "/search-suggestions?q=Queen", nil)
+	if err != nil {
+		t.Fatalf("Could not create request: %v", err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(GetSearchSuggestionsHandler)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status OK; got %v", rr.Code)
+	}
+
+	if !strings.Contains(rr.Body.String(), "Queen - artist/band") {
+		t.Errorf("Expected response body to contain 'Queen - artist/band'")
+	}
+}
+
+func TestServeArtistDetailsInvalidID(t *testing.T) {
+	req, err := http.NewRequest("GET", "/artist/invalid", nil)
+	if err != nil {
+		t.Fatalf("Could not create request: %v", err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(ServeArtistDetails)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected statusOK; got %v", rr.Code)
+	}
+
+	expectedErrorMessage := "Invalid artist ID"
+	if !strings.Contains(rr.Body.String(), expectedErrorMessage) {
+		t.Errorf("Expected error message '%s' not found in response body", expectedErrorMessage)
+	}
+}
+
+func TestErrorHandler(t *testing.T) {
+	rr := httptest.NewRecorder()
+	ErrorHandler(rr, "Test error", http.StatusNotFound, true, true)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status OK; got %v", rr.Code)
+	}
+
+	if !strings.Contains(rr.Body.String(), "Test error") {
+		t.Errorf("Expected response body to contain 'Test error'")
+	}
+}
+
+func TestGetArtistsHandlerWithFilter(t *testing.T) {
+	req, err := http.NewRequest("GET", "/artists?query=Queen", nil)
+	if err != nil {
+		t.Fatalf("Could not create request: %v", err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(GetArtistsHandler)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status OK; got %v", rr.Code)
+	}
+
+	if !strings.Contains(rr.Body.String(), "Queen") {
+		t.Errorf("Expected filtered response to contain 'Queen'")
+	}
+
+	if strings.Contains(rr.Body.String(), "The Beatles") {
+		t.Errorf("Expected filtered response not to contain 'The Beatles'")
+	}
+}
