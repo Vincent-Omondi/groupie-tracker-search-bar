@@ -103,7 +103,16 @@ func getCachedData() ([]api.Artist, []api.Location, []api.Date, []api.Relation) 
 
 // ErrorHandler handles error responses and templates
 func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logError, showStatusCode bool) {
-	w.WriteHeader(statusCode)
+
+	if w.Header().Get("Content-Type") != "" {
+		// Headers already sent, just log the error and return
+		if logError {
+			log.Printf("Error occurred after headers were sent: %s", message)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	data := struct {
 		StatusCode int
@@ -138,8 +147,15 @@ func ErrorHandler(w http.ResponseWriter, message string, statusCode int, logErro
 	}
 
 	_, err = buf.WriteTo(w)
-	if err != nil && logError {
-		log.Println("Error writing response:", err)
+	if err != nil {
+		if logError {
+			if strings.Contains(err.Error(), "broken pipe") || strings.Contains(err.Error(), "connection reset by peer") {
+				log.Println("Client disconnected before response was fully sent")
+			} else {
+				log.Println("Error writing response:", err)
+			}
+		}
+		return
 	}
 }
 
@@ -149,14 +165,6 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
 	artists, _, _, _ := getCachedData()
-
-	// for i := range artists {
-	// 	log.Printf("Locations for artist %d: %v", artists[i].ID, artists[i].Locations)
-	// }
-
-	// for i := range artists {
-	// 	log.Println(FetchArtistLocations(artists[i].Locations))
-	// }
 
 	for i := range artists {
 		// Format the URL with the value of i
@@ -169,13 +177,9 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Printf("Error fetching location for artist %d: %v", artists[i].ID, err)
 		}
-
-		// log.Println(locations)
 	}
 
 	filteredArtists := filterArtists(artists, query)
-
-	// log.Println(filteredArtists)
 
 	if len(filteredArtists) == 0 && query != "" {
 		ErrorHandler(w, "No Result Found for this search.", http.StatusNotFound, false, false)
@@ -195,11 +199,23 @@ func ServeArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = tmpl.Execute(w, data)
+	// Use a buffer to render the template
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
 		ErrorHandler(w, "We encountered an issue while rendering the page. Please try again later.", http.StatusInternalServerError, true, true)
 		return
+	}
+
+	// Write the rendered template to the response
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		if strings.Contains(err.Error(), "broken pipe") || strings.Contains(err.Error(), "connection reset by peer") {
+			log.Println("Client disconnected before response was fully sent")
+		} else {
+			log.Printf("Error writing response: %v", err)
+		}
 	}
 }
 
@@ -239,16 +255,11 @@ func filterArtists(artists []api.Artist, query string) []api.Artist {
 			continue
 		}
 
-		locations, err := FetchArtistLocations(a.Locations)
-		if err == nil {
-			for _, loc := range locations {
-				if strings.Contains(strings.ToLower(loc), query) {
-					result = append(result, a)
-					break
-				}
-			}
+		// locations
+		if strings.Contains(strings.ToLower(a.Locations), strings.ToLower(query)) {
+			result = append(result, a)
+			continue
 		}
-
 	}
 	return result
 }
@@ -286,26 +297,19 @@ func GetSearchSuggestionsHandler(w http.ResponseWriter, r *http.Request) {
 			suggestions = append(suggestions, fmt.Sprintf("%d - creation date", artist.CreationDate))
 		}
 
-		if strings.Contains(strings.ToLower(artist.Locations), strings.ToLower(query)) {
-			suggestions = append(suggestions, fmt.Sprintf("%s - locations", artist.Locations))
+		// Locations
+		locations := strings.Split(artist.Locations, ", ")
+		for _, loc := range locations {
+			if strings.Contains(strings.ToLower(loc), strings.ToLower(query)) {
+				suggestions = append(suggestions, fmt.Sprintf("%s - location", loc))
+			}
 		}
-		log.Println(artist.Locations)
 
-		// Fetch actual locations instead of URL
-		// locations, err := FetchArtistLocations(artist.Locations)
-		// log.Println(locations)
-		// if err == nil {
-		// 	for _, loc := range locations {
-		// 		if strings.Contains(strings.ToLower(loc), strings.ToLower(query)) {
-		// 			suggestions = append(suggestions, fmt.Sprintf("%s - location", loc))
-		// 		}
-		// 	}
-		// }
 	}
 
 	json.NewEncoder(w).Encode(suggestions)
 }
-
+// Serve artist details page
 func ServeArtistDetails(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/artist/" {
 		ErrorHandler(w, "oops! page not found", http.StatusNotFound, true, true)
@@ -475,7 +479,6 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Fetch artist locations from the provided URL
-
 func FetchArtistLocations(locationsURL string) ([]string, error) {
 	body, err := api.FetchData(locationsURL)
 	if err != nil {
@@ -489,16 +492,3 @@ func FetchArtistLocations(locationsURL string) ([]string, error) {
 
 	return locationData.Locations, nil
 }
-
-// func FetchArtistLocations(locationsURL string) ([]string, error) {
-// 	body, err := api.FetchData(locationsURL)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to fetch location data: %v", err)
-// 	}
-
-// 	var locationData api.Location
-// 	if err := json.Unmarshal(body, &locationData); err != nil {
-// 		return nil, fmt.Errorf("failed to unmarshal location data: %v", err)
-// 	}
-// 	return locationData.Locations, nil
-// }
