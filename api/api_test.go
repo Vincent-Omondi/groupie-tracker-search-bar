@@ -157,3 +157,125 @@ func TestGetRelations(t *testing.T) {
 		t.Errorf("Expected relations to have specific dates, got %v", relations[0].DatesLocations["north_carolina-usa"][0])
 	}
 }
+
+func TestGetArtistsEmptyResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+	}))
+	defer server.Close()
+
+	ArtistsURL = server.URL
+
+	artists, err := GetArtists()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if len(artists) != 0 {
+		t.Errorf("Expected empty slice, got %v", artists)
+	}
+}
+
+func TestGetLocationsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	LocationsURL = server.URL
+
+	_, err := GetLocations()
+	if err == nil {
+		t.Fatalf("Expected an error, got nil")
+	}
+}
+
+func TestGetDatesInvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("{invalid json}"))
+	}))
+	defer server.Close()
+
+	DatesURL = server.URL
+
+	_, err := GetDates()
+	if err == nil {
+		t.Fatalf("Expected an error for invalid JSON, got nil")
+	}
+}
+
+func TestGetRelationsEmptyResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"index":[]}`))
+	}))
+	defer server.Close()
+
+	RelationURL = server.URL
+
+	relations, err := GetRelations()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if len(relations) != 0 {
+		t.Errorf("Expected empty slice, got %v", relations)
+	}
+}
+
+func TestGetArtistByID(t *testing.T) {
+	setupMockServers := func() (*httptest.Server, *httptest.Server, *httptest.Server, *httptest.Server) {
+		artistServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode([]Artist{{ID: 1, Name: "Test Artist"}})
+		}))
+		locationServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(struct{ Index []Location }{[]Location{{ID: 1, Locations: []string{"Test Location"}}}})
+		}))
+		dateServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(struct{ Index []Date }{[]Date{{ID: 1, Dates: []string{"2023-01-01"}}}})
+		}))
+		relationServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(struct{ Index []Relation }{[]Relation{{ID: 1, DatesLocations: map[string][]string{"Test Location": {"2023-01-01"}}}}})
+		}))
+		return artistServer, locationServer, dateServer, relationServer
+	}
+
+	artistServer, locationServer, dateServer, relationServer := setupMockServers()
+	defer artistServer.Close()
+	defer locationServer.Close()
+	defer dateServer.Close()
+	defer relationServer.Close()
+
+	ArtistsURL = artistServer.URL
+	LocationsURL = locationServer.URL
+	DatesURL = dateServer.URL
+	RelationURL = relationServer.URL
+
+	artist, location, date, relation, err := GetArtistByID(1)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if artist == nil || location == nil || date == nil || relation == nil {
+		t.Fatalf("Expected all fields to be non-nil")
+	}
+	if artist.Name != "Test Artist" {
+		t.Errorf("Expected artist name to be 'Test Artist', got %v", artist.Name)
+	}
+}
+
+func TestGetArtistByIDNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]Artist{})
+	}))
+	defer server.Close()
+
+	ArtistsURL = server.URL
+	LocationsURL = server.URL
+	DatesURL = server.URL
+	RelationURL = server.URL
+
+	_, _, _, _, err := GetArtistByID(999)
+	if err == nil {
+		t.Fatalf("Expected an error for non-existent artist, got nil")
+	}
+}
