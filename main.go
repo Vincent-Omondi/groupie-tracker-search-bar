@@ -15,9 +15,7 @@ func main() {
 		fmt.Println("Incorrect number of arguments passed. Usage: go run .")
 		return
 	}
-
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-
 	http.HandleFunc("/artists", controllers.ServeArtists)
 	http.HandleFunc("/artist/", controllers.ServeArtistDetails)
 	http.HandleFunc("/about", controllers.AboutHandler)
@@ -40,9 +38,6 @@ func main() {
 		// If it's not a known route, use ErrorHandler for 404
 		controllers.ErrorHandler(w, "Page Not Found", http.StatusNotFound, true, true)
 	})
-
-	fmt.Println(controllers.FetchArtistLocations("https://groupietrackers.herokuapp.com/api/locations/1"))
-
 	log.Println("Server is running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
